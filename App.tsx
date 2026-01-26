@@ -124,21 +124,21 @@ const App: React.FC = () => {
   }, [tbilisiTimeData]);
 
   // Logic for what to show in the info card
-  const lessonToShow = useMemo(() => {
+  const lessonData = useMemo(() => {
     const daySchedule = LESSON_SCHEDULE[tbilisiTimeData.day];
     if (!daySchedule) return null;
 
     if (status === BellStatus.BEFORE_SCHOOL) {
-      return { label: 'პირველი გაკვეთილი', lesson: daySchedule[0] };
+      return { current: { label: 'პირველი გაკვეთილი', lesson: daySchedule[0] }, next: daySchedule[1] };
     }
     
     if (status === BellStatus.LESSON) {
-      return { label: 'ახლა გვაქვს', lesson: daySchedule[currentPeriod - 1] };
+      return { current: { label: 'ახლა გვაქვს', lesson: daySchedule[currentPeriod - 1] }, next: daySchedule[currentPeriod] };
     }
     
     if (status === BellStatus.BREAK) {
       const next = daySchedule[currentPeriod];
-      return next ? { label: 'შემდეგი გაკვეთილი', lesson: next } : null;
+      return next ? { current: { label: 'შემდეგი გაკვეთილი', lesson: next }, next: daySchedule[currentPeriod + 1] } : null;
     }
     
     return null;
@@ -227,13 +227,28 @@ const App: React.FC = () => {
           <div className={`text-8xl md:text-[10rem] font-black tabular-nums tracking-tighter leading-none mb-6 ${theme.head}`}>
             {delayIn !== null ? formatTimeRemaining(delayIn) : formatTimeRemaining(nextBellIn)}
           </div>
-          {lessonToShow && (
-            <div className={`w-full rounded-[2.5rem] p-8 flex flex-col items-center border transition-all ${theme.muted}`}>
-              <span className={`text-[10px] uppercase font-black mb-2 tracking-widest ${status === BellStatus.BREAK ? 'text-indigo-500' : 'text-slate-500'}`}>
-                {lessonToShow.label}
-              </span>
-              <h3 className={`text-3xl font-black ${theme.head}`}>{lessonToShow.lesson.subject}</h3>
-              <p className={`${theme.sub} font-black text-lg mt-1`}>{lessonToShow.lesson.teacher}</p>
+          {lessonData && (
+            <div className="w-full flex flex-col gap-4">
+              <div className={`w-full rounded-[2.5rem] p-8 flex flex-col items-center border transition-all ${theme.muted}`}>
+                <span className={`text-[10px] uppercase font-black mb-2 tracking-widest ${status === BellStatus.BREAK ? 'text-indigo-500' : 'text-slate-500'}`}>
+                  {lessonData.current.label}
+                </span>
+                <h3 className={`text-3xl font-black ${theme.head}`}>{lessonData.current.lesson.subject}</h3>
+                <p className={`${theme.sub} font-black text-lg mt-1`}>{lessonData.current.lesson.teacher}</p>
+              </div>
+
+              {/* Smaller Box for Next Lesson during LESSON status */}
+              {status === BellStatus.LESSON && lessonData.next && (
+                <div className={`w-full rounded-[2rem] p-5 flex items-center justify-between border transition-all ${isDarkMode ? 'bg-white/[0.03] border-white/[0.05]' : 'bg-slate-50/50 border-slate-100'}`}>
+                  <div className="flex flex-col items-start">
+                    <span className="text-[9px] uppercase font-black text-indigo-500/70 tracking-widest mb-0.5">შემდეგი გაკვეთილი</span>
+                    <h4 className={`text-lg font-black tracking-tight ${theme.head}`}>{lessonData.next.subject}</h4>
+                  </div>
+                  <span className="text-[11px] font-bold text-slate-500 opacity-60">
+                    {lessonData.next.teacher}
+                  </span>
+                </div>
+              )}
             </div>
           )}
         </div>
