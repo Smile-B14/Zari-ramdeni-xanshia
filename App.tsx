@@ -203,14 +203,12 @@ const App: React.FC = () => {
     return null;
   }, [tbilisiTimeData.day, status, currentPeriod, nextSchoolDay]);
 
-  // FIX: Added missing holiday calculations for the schedule table and next holiday card
-  const { holidayStatusByDay, nextHolidayInfo } = useMemo(() => {
+  const { holidayStatusByDay, nextHolidayInfo, holidaysByMonth } = useMemo(() => {
     const { raw } = tbilisiTimeData;
     
-    // Calculate if each day of the CURRENT school week is a holiday
     const hStatus: Record<number, boolean> = {};
     const tempDate = new Date(raw);
-    const currentDay = tempDate.getDay(); // 0 = Sunday
+    const currentDay = tempDate.getDay(); 
     const diffToMonday = currentDay === 0 ? -6 : 1 - currentDay;
     tempDate.setDate(tempDate.getDate() + diffToMonday);
     
@@ -220,15 +218,12 @@ const App: React.FC = () => {
       hStatus[i] = checkIsHoliday(d.getMonth() + 1, d.getDate());
     }
 
-    // Find the next upcoming holiday
     let nextInfo = null;
     let minDiff = Infinity;
 
-    // Check fixed holidays in 2026
     for (const hStr of HOLIDAYS_2026) {
       const [m, d] = hStr.split('-').map(Number);
       let hDate = new Date(raw.getFullYear(), m - 1, d);
-      // If holiday already passed this year, check next year
       if (hDate.getTime() < raw.getTime()) {
         hDate.setFullYear(raw.getFullYear() + 1);
       }
@@ -244,11 +239,9 @@ const App: React.FC = () => {
       }
     }
 
-    // Check holiday ranges (e.g., summer break)
     for (const range of HOLIDAY_RANGES) {
       let hDate = new Date(raw.getFullYear(), range.start.m - 1, range.start.d);
       if (hDate.getTime() < raw.getTime()) {
-        // Check if we are currently inside this range
         const startVal = range.start.m * 100 + range.start.d;
         const endVal = range.end.m * 100 + range.end.d;
         const curVal = (raw.getMonth() + 1) * 100 + raw.getDate();
@@ -271,7 +264,19 @@ const App: React.FC = () => {
       }
     }
 
-    return { holidayStatusByDay: hStatus, nextHolidayInfo: nextInfo };
+    // Group holidays by month for the monthly grid view
+    const groups: Record<number, { day: number, name: string }[]> = {};
+    for (let m = 1; m <= 12; m++) {
+      const daysInMonth = new Date(2026, m, 0).getDate();
+      for (let d = 1; d <= daysInMonth; d++) {
+        if (checkIsHoliday(m, d)) {
+          if (!groups[m]) groups[m] = [];
+          groups[m].push({ day: d, name: getHolidayName(m, d) });
+        }
+      }
+    }
+
+    return { holidayStatusByDay: hStatus, nextHolidayInfo: nextInfo, holidaysByMonth: groups };
   }, [tbilisiTimeData]);
 
   const theme = {
@@ -465,6 +470,59 @@ const App: React.FC = () => {
           </div>
         </section>
       )}
+
+      {/* Monthly Future Holidays Grid Section */}
+      <section className="w-full mb-24">
+        <div className="flex flex-col items-center mb-12">
+            <h2 className={`text-4xl md:text-5xl font-black tracking-tight text-center ${theme.head}`}>2026 წლის უქმე დღეები</h2>
+            <p className={`mt-2 ${theme.sub} font-bold opacity-70`}>არდადეგები და სახელმწიფო დასვენებები</p>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 w-full">
+          {MONTH_NAMES_GE.map((monthName, idx) => {
+            const mNum = idx + 1;
+            const holidays = holidaysByMonth[mNum] || [];
+            const isCurr = tbilisiTimeData.m === mNum;
+
+            if (holidays.length === 0) return null;
+
+            // Merge consecutive days with same holiday name for better display
+            const holidayGroups = holidays.reduce((acc: any[], curr) => {
+              if (acc.length > 0) {
+                const last = acc[acc.length - 1];
+                if (last.name === curr.name && curr.day === last.end + 1) {
+                  last.end = curr.day;
+                  return acc;
+                }
+              }
+              acc.push({ start: curr.day, end: curr.day, name: curr.name });
+              return acc;
+            }, []);
+
+            return (
+              <div key={monthName} className={`p-8 rounded-[3rem] border transition-all ${theme.card} ${isCurr ? 'ring-4 ring-indigo-500/20' : ''}`}>
+                <h3 className={`font-black text-3xl mb-8 ${isCurr ? 'text-indigo-500' : theme.head}`}>{monthName}</h3>
+                <div className="space-y-4">
+                  {holidayGroups.map((g: any, i: number) => (
+                    <div key={i} className={`flex items-center gap-4 p-4 rounded-2xl border transition-all ${theme.holidayCard} ${theme.border}`}>
+                       <div className={`w-14 h-12 rounded-2xl flex flex-col items-center justify-center font-black shrink-0 shadow-lg ${g.end > g.start ? 'bg-indigo-500 text-white' : 'bg-red-500 text-white shadow-red-500/20'}`}>
+                        <span className="text-sm leading-none">{g.start}</span>
+                        {g.end > g.start && (
+                          <><div className="w-1/2 h-[1px] bg-white/30 my-0.5" /><span className="text-sm leading-none">{g.end}</span></>
+                        )}
+                       </div>
+                       <div className="flex flex-col min-w-0">
+                          <span className={`font-black text-sm truncate ${theme.head}`}>{g.name}</span>
+                          <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{g.end > g.start ? 'არდადეგები' : 'დასვენება'}</span>
+                       </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
 
       <footer className="text-center py-20 border-t w-full border-slate-200/10">
         <p className="text-[11px] font-black tracking-[0.6em] mb-2 opacity-40">DESIGNED BY SMILE B</p>
