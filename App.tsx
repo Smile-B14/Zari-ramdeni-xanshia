@@ -1,4 +1,4 @@
-import { Calendar, Clock, Coffee, GraduationCap, Info, LayoutGrid, Moon, PartyPopper, Sun, ArrowRight, BellRing, Bell, ExternalLink, BookOpenCheck } from 'lucide-react';
+import { Calendar, Clock, Coffee, GraduationCap, Info, LayoutGrid, Moon, PartyPopper, Sun, ArrowRight, BellRing, Bell, ExternalLink, BookOpenCheck, Flag } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react';
 import { BELL_TIMES, HOLIDAYS_2026, LESSON_SCHEDULE, WEEKDAYS_GE, HOLIDAY_NAMES_GE, HOLIDAY_RANGES } from './constants';
 import { BellStatus } from './types';
@@ -42,10 +42,15 @@ const getHolidayName = (m: number, d: number) => {
 };
 
 const formatTimeRemaining = (seconds: number | null) => {
-  if (seconds === null) return '00:00';
+  if (seconds === null) return '00:00:00';
   const s = Math.ceil(seconds);
-  const mins = Math.floor(s / 60);
+  const hrs = Math.floor(s / 3600);
+  const mins = Math.floor((s % 3600) / 60);
   const secs = s % 60;
+  
+  if (hrs > 0) {
+    return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  }
   return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 };
 
@@ -76,27 +81,61 @@ const App: React.FC = () => {
     const minute = parseInt(getPart('minute'));
     const second = parseInt(getPart('second'));
     const tbilisiNow = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Tbilisi' }));
-    return { day: tbilisiNow.getDay(), m: parseInt(month), d: parseInt(date), hour, minute, second, year };
+    return { day: tbilisiNow.getDay(), m: parseInt(month), d: parseInt(date), hour, minute, second, year, raw: tbilisiNow };
   }, [now]);
 
-  const { status, nextBellIn, delayIn, currentPeriod, nextEventLabel } = useMemo(() => {
-    const { day, m, d, hour, minute, second } = tbilisiTimeData;
+  const { status, nextBellIn, delayIn, currentPeriod, nextEventLabel, nextSchoolDay } = useMemo(() => {
+    const { day, m, d, hour, minute, second, raw } = tbilisiTimeData;
     const isHoliday = checkIsHoliday(m, d);
-    if (day === 0 || day === 6 || isHoliday) {
-      return { status: BellStatus.WEEKEND, nextBellIn: null, delayIn: null, currentPeriod: 0, nextEventLabel: isHoliday ? getHolidayName(m, d) : 'დასვენება' };
-    }
+    
+    // Logic for next school day start
+    const getNextSchoolStartTime = () => {
+      let nextDate = new Date(raw);
+      nextDate.setHours(8, 30, 0, 0);
+      
+      // Advance day until we find a working school day
+      let found = false;
+      while (!found) {
+        nextDate.setDate(nextDate.getDate() + 1);
+        const nm = nextDate.getMonth() + 1;
+        const nd = nextDate.getDate();
+        const nDay = nextDate.getDay();
+        if (nDay !== 0 && nDay !== 6 && !checkIsHoliday(nm, nd)) {
+          found = true;
+        }
+      }
+      return { time: nextDate, day: nextDate.getDay() };
+    };
+
     const currentTimeInSeconds = hour * 3600 + minute * 60 + second;
     const firstStart = BELL_TIMES[0].start.split(':').map(Number);
     const startOfDaySecs = firstStart[0] * 3600 + firstStart[1] * 60;
     const lastEnd = BELL_TIMES[BELL_TIMES.length - 1].end.split(':').map(Number);
     const endOfDaySecs = lastEnd[0] * 3600 + lastEnd[1] * 60;
 
-    if (currentTimeInSeconds < startOfDaySecs) {
-      return { status: BellStatus.BEFORE_SCHOOL, nextBellIn: startOfDaySecs - currentTimeInSeconds, delayIn: null, currentPeriod: 0, nextEventLabel: 'პირველი გაკვეთილის დაწყებამდე' };
+    // Before school starts today
+    if (currentTimeInSeconds < startOfDaySecs && !isHoliday && day !== 0 && day !== 6) {
+      return { status: BellStatus.BEFORE_SCHOOL, nextBellIn: startOfDaySecs - currentTimeInSeconds, delayIn: null, currentPeriod: 0, nextEventLabel: 'პირველი გაკვეთილის დაწყებამდე', nextSchoolDay: day };
     }
-    if (currentTimeInSeconds > endOfDaySecs + BELL_DELAY_SECONDS) {
-      return { status: BellStatus.AFTER_SCHOOL, nextBellIn: null, delayIn: null, currentPeriod: 0, nextEventLabel: 'სკოლა დასრულდა' };
+
+    // Weekend or holiday or after school - need countdown to next school day
+    if (day === 0 || day === 6 || isHoliday || currentTimeInSeconds > endOfDaySecs + BELL_DELAY_SECONDS) {
+      const nextInfo = getNextSchoolStartTime();
+      const diffSecs = (nextInfo.time.getTime() - raw.getTime()) / 1000;
+      let label = 'სკოლის დაწყებამდე';
+      if (day === 5 || day === 6 || day === 0) label = 'ორშაბათამდე';
+      else label = 'ხვალამდე';
+
+      return { 
+        status: day === 0 || day === 6 || isHoliday ? BellStatus.WEEKEND : BellStatus.AFTER_SCHOOL, 
+        nextBellIn: diffSecs, 
+        delayIn: null, 
+        currentPeriod: 0, 
+        nextEventLabel: label,
+        nextSchoolDay: nextInfo.day
+      };
     }
+
     for (let i = 0; i < BELL_TIMES.length; i++) {
       const b = BELL_TIMES[i];
       const s = b.start.split(':').map(Number);
@@ -125,24 +164,45 @@ const App: React.FC = () => {
 
   // Logic for what to show in the info card
   const lessonData = useMemo(() => {
-    const daySchedule = LESSON_SCHEDULE[tbilisiTimeData.day];
+    const isOut = status === BellStatus.AFTER_SCHOOL || status === BellStatus.WEEKEND;
+    const targetDay = isOut ? (nextSchoolDay || 1) : tbilisiTimeData.day;
+    const daySchedule = LESSON_SCHEDULE[targetDay];
     if (!daySchedule) return null;
 
+    if (isOut) {
+      let label = tbilisiTimeData.day === 5 ? 'ორშაბათს' : 'ხვალ';
+      return { 
+        current: { label, lesson: daySchedule[0], num: 1 }, 
+        next: daySchedule[1] ? { ...daySchedule[1], num: 2 } : null 
+      };
+    }
+
     if (status === BellStatus.BEFORE_SCHOOL) {
-      return { current: { label: 'პირველი გაკვეთილი', lesson: daySchedule[0] }, next: daySchedule[1] };
+      return { 
+        current: { label: 'პირველი გაკვეთილი', lesson: daySchedule[0], num: 1 }, 
+        next: daySchedule[1] ? { ...daySchedule[1], num: 2 } : null 
+      };
     }
     
     if (status === BellStatus.LESSON) {
-      return { current: { label: 'ახლა გვაქვს', lesson: daySchedule[currentPeriod - 1] }, next: daySchedule[currentPeriod] };
+      const isLast = currentPeriod === daySchedule.length;
+      return { 
+        current: { label: 'ახლა გვაქვს', lesson: daySchedule[currentPeriod - 1], num: currentPeriod, isLast }, 
+        next: daySchedule[currentPeriod] ? { ...daySchedule[currentPeriod], num: currentPeriod + 1, isNextLast: currentPeriod + 1 === daySchedule.length } : null 
+      };
     }
     
     if (status === BellStatus.BREAK) {
       const next = daySchedule[currentPeriod];
-      return next ? { current: { label: 'შემდეგი გაკვეთილი', lesson: next }, next: daySchedule[currentPeriod + 1] } : null;
+      const isNextLast = currentPeriod + 1 === daySchedule.length;
+      return next ? { 
+        current: { label: 'შემდეგი გაკვეთილი', lesson: next, num: currentPeriod + 1, isNextLast }, 
+        next: daySchedule[currentPeriod + 1] ? { ...daySchedule[currentPeriod + 1], num: currentPeriod + 2 } : null 
+      } : null;
     }
     
     return null;
-  }, [tbilisiTimeData.day, status, currentPeriod]);
+  }, [tbilisiTimeData.day, status, currentPeriod, nextSchoolDay]);
 
   const holidaysByMonth = useMemo(() => {
     const groups: Record<number, { day: number, name: string }[]> = {};
@@ -201,6 +261,19 @@ const App: React.FC = () => {
 
   return (
     <div className={`min-h-screen transition-colors duration-500 ${isDarkMode ? 'text-slate-100' : 'text-slate-800'} p-4 md:p-8 flex flex-col items-center max-w-7xl mx-auto selection:bg-indigo-500 selection:text-white`}>
+      <style>{`
+        .finish-pattern {
+          background-image: repeating-conic-gradient(#000 0 90deg, #fff 0 180deg);
+          background-size: 20px 20px;
+          opacity: 0.1;
+        }
+        .finish-pattern-dark {
+          background-image: repeating-conic-gradient(#fff 0 90deg, #000 0 180deg);
+          background-size: 20px 20px;
+          opacity: 0.05;
+        }
+      `}</style>
+
       <div className="w-full flex justify-end gap-3 mb-6">
         <button 
           onClick={() => setIsDarkMode(!isDarkMode)} 
@@ -220,31 +293,61 @@ const App: React.FC = () => {
 
       <main className={`w-full max-w-2xl rounded-[3rem] border p-8 md:p-14 mb-8 text-center relative overflow-hidden transition-all ${theme.card}`}>
         <div className={`absolute top-0 left-0 w-full h-2 ${delayIn ? 'bg-amber-500 animate-pulse' : status === BellStatus.LESSON ? 'bg-indigo-500' : status === BellStatus.BREAK ? 'bg-emerald-500' : 'bg-slate-700'}`} />
-        <div className="flex flex-col items-center">
+        
+        {/* Finish indicator pattern if it's the last lesson or school is over */}
+        {(lessonData?.current?.isLast || status === BellStatus.AFTER_SCHOOL) && (
+          <div className={`absolute inset-0 pointer-events-none ${isDarkMode ? 'finish-pattern-dark' : 'finish-pattern'}`} />
+        )}
+
+        <div className="flex flex-col items-center relative z-10">
           <span className={`px-5 py-2 rounded-full text-[10px] font-black mb-8 flex items-center gap-2 uppercase tracking-[0.2em] ${status === BellStatus.LESSON ? (isDarkMode ? 'bg-indigo-500/10 text-indigo-400' : 'bg-indigo-100 text-indigo-700') : (isDarkMode ? 'bg-slate-800 text-slate-400' : 'bg-slate-100 text-slate-600')}`}>
-            {status === BellStatus.LESSON ? <GraduationCap size={18} /> : <Coffee size={18} />} {nextEventLabel}
+            {status === BellStatus.LESSON ? <GraduationCap size={18} /> : status === BellStatus.BREAK ? <Coffee size={18} /> : <Flag size={18} />} {nextEventLabel}
           </span>
-          <div className={`text-8xl md:text-[10rem] font-black tabular-nums tracking-tighter leading-none mb-6 ${theme.head}`}>
+          <div className={`text-7xl md:text-[9rem] font-black tabular-nums tracking-tighter leading-none mb-6 ${theme.head}`}>
             {delayIn !== null ? formatTimeRemaining(delayIn) : formatTimeRemaining(nextBellIn)}
           </div>
+          
           {lessonData && (
             <div className="w-full flex flex-col gap-4">
-              <div className={`w-full rounded-[2.5rem] p-8 flex flex-col items-center border transition-all ${theme.muted}`}>
-                <span className={`text-[10px] uppercase font-black mb-2 tracking-widest ${status === BellStatus.BREAK ? 'text-indigo-500' : 'text-slate-500'}`}>
-                  {lessonData.current.label}
-                </span>
+              <div className={`w-full rounded-[2.5rem] p-8 flex flex-col items-center border transition-all relative overflow-hidden ${theme.muted}`}>
+                {lessonData.current.isLast && (
+                  <div className={`absolute inset-0 pointer-events-none ${isDarkMode ? 'opacity-10' : 'opacity-5'} bg-[url('https://www.transparenttextures.com/patterns/checkerboard.png')]`} />
+                )}
+                
+                <div className="flex items-center gap-3 mb-2">
+                   <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-black ${isDarkMode ? 'bg-white/10 text-white' : 'bg-indigo-600 text-white'}`}>
+                      {lessonData.current.num}
+                   </div>
+                   <span className={`text-[10px] uppercase font-black tracking-widest ${status === BellStatus.BREAK ? 'text-indigo-500' : 'text-slate-500'}`}>
+                    {lessonData.current.label}
+                  </span>
+                </div>
+                
                 <h3 className={`text-3xl font-black ${theme.head}`}>{lessonData.current.lesson.subject}</h3>
                 <p className={`${theme.sub} font-black text-lg mt-1`}>{lessonData.current.lesson.teacher}</p>
+                
+                {lessonData.current.isLast && (
+                  <span className="mt-4 px-3 py-1 bg-amber-500 text-black text-[10px] font-black rounded-full uppercase tracking-widest">ფინიში 🏁</span>
+                )}
               </div>
 
-              {/* Smaller Box for Next Lesson during LESSON status */}
-              {status === BellStatus.LESSON && lessonData.next && (
-                <div className={`w-full rounded-[2rem] p-5 flex items-center justify-between border transition-all ${isDarkMode ? 'bg-white/[0.03] border-white/[0.05]' : 'bg-slate-50/50 border-slate-100'}`}>
-                  <div className="flex flex-col items-start">
-                    <span className="text-[9px] uppercase font-black text-indigo-500/70 tracking-widest mb-0.5">შემდეგი გაკვეთილი</span>
+              {/* Smaller Box for Next Lesson */}
+              {lessonData.next && (
+                <div className={`w-full rounded-[2rem] p-5 flex items-center justify-between border transition-all overflow-hidden relative ${isDarkMode ? 'bg-white/[0.03] border-white/[0.05]' : 'bg-white border-slate-100 shadow-sm'}`}>
+                  {lessonData.next.isNextLast && (
+                    <div className="absolute inset-0 finish-pattern pointer-events-none opacity-[0.03]" />
+                  )}
+                  
+                  <div className="flex flex-col items-start relative z-10">
+                    <div className="flex items-center gap-2 mb-1">
+                       <div className="w-5 h-5 rounded-md bg-slate-500/10 flex items-center justify-center text-[8px] font-black text-slate-500">
+                          {lessonData.next.num}
+                       </div>
+                       <span className="text-[9px] uppercase font-black text-indigo-500/70 tracking-widest">შემდეგი</span>
+                    </div>
                     <h4 className={`text-lg font-black tracking-tight ${theme.head}`}>{lessonData.next.subject}</h4>
                   </div>
-                  <span className="text-[11px] font-bold text-slate-500 opacity-60">
+                  <span className="text-[11px] font-bold text-slate-500 opacity-60 relative z-10">
                     {lessonData.next.teacher}
                   </span>
                 </div>
