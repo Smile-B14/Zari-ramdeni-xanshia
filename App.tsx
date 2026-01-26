@@ -264,7 +264,6 @@ const App: React.FC = () => {
       }
     }
 
-    // Group holidays by month for the monthly grid view
     const groups: Record<number, { day: number, name: string }[]> = {};
     for (let m = 1; m <= 12; m++) {
       const daysInMonth = new Date(2026, m, 0).getDate();
@@ -354,7 +353,7 @@ const App: React.FC = () => {
                 <p className={`${theme.sub} font-black text-lg mt-1 relative z-10`}>{lessonData.current.lesson.teacher}</p>
                 
                 {lessonData.current.isLast && !isLongCountdown && (
-                  <span className="mt-4 px-3 py-1 bg-amber-500 text-black text-[10px] font-black rounded-full uppercase tracking-widest relative z-10">ფინიში 🏁</span>
+                  <span className="mt-4 px-3 py-1 bg-amber-500 text-black text-[10px] font-black rounded-full uppercase tracking-widest relative z-10">ბოლო გაკვეთილი 🏁</span>
                 )}
               </div>
 
@@ -471,7 +470,6 @@ const App: React.FC = () => {
         </section>
       )}
 
-      {/* Monthly Future Holidays Grid Section */}
       <section className="w-full mb-24">
         <div className="flex flex-col items-center mb-12">
             <h2 className={`text-4xl md:text-5xl font-black tracking-tight text-center ${theme.head}`}>2026 წლის უქმე დღეები</h2>
@@ -486,7 +484,6 @@ const App: React.FC = () => {
 
             if (holidays.length === 0) return null;
 
-            // Merge consecutive days with same holiday name for better display
             const holidayGroups = holidays.reduce((acc: any[], curr) => {
               if (acc.length > 0) {
                 const last = acc[acc.length - 1];
