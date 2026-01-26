@@ -1,4 +1,4 @@
-import { Calendar, ChevronRight, Clock, Coffee, GraduationCap, Info, LayoutGrid, Moon, PartyPopper, Sun, ArrowRight, BellRing, Bell, ExternalLink, BookOpenCheck } from 'lucide-react';
+import { Calendar, Clock, Coffee, GraduationCap, Info, LayoutGrid, Moon, PartyPopper, Sun, ArrowRight, BellRing, Bell, ExternalLink, BookOpenCheck } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react';
 import { BELL_TIMES, HOLIDAYS_2026, LESSON_SCHEDULE, WEEKDAYS_GE, HOLIDAY_NAMES_GE, HOLIDAY_RANGES } from './constants';
 import { BellStatus } from './types';
@@ -9,7 +9,6 @@ const MONTH_NAMES_GE = [
   "ივლისი", "აგვისტო", "სექტემბერი", "ოქტომბერი", "ნოემბერი", "დეკემბერი"
 ];
 
-// Helper: Check if a date is a holiday (Single or Range)
 const checkIsHoliday = (m: number, d: number) => {
   const dateStr = `${m.toString().padStart(2, '0')}-${d.toString().padStart(2, '0')}`;
   if (HOLIDAYS_2026.includes(dateStr)) return true;
@@ -26,7 +25,6 @@ const checkIsHoliday = (m: number, d: number) => {
   return false;
 };
 
-// Helper: Get name of the holiday for a specific date
 const getHolidayName = (m: number, d: number) => {
   const dateStr = `${m.toString().padStart(2, '0')}-${d.toString().padStart(2, '0')}`;
   if (HOLIDAY_NAMES_GE[dateStr]) return HOLIDAY_NAMES_GE[dateStr];
@@ -61,7 +59,6 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    // Explicitly set background color on body and html to ensure no overrides
     const bgColor = isDarkMode ? '#09090b' : '#f8fafc';
     document.documentElement.style.backgroundColor = bgColor;
     document.body.style.backgroundColor = bgColor;
@@ -86,7 +83,7 @@ const App: React.FC = () => {
     const { day, m, d, hour, minute, second } = tbilisiTimeData;
     const isHoliday = checkIsHoliday(m, d);
     if (day === 0 || day === 6 || isHoliday) {
-      return { status: BellStatus.WEEKEND, nextBellIn: null, delayIn: null, currentPeriod: 0, nextEventLabel: isHoliday ? getHolidayName(m, d) : 'დასვენება', isHoliday };
+      return { status: BellStatus.WEEKEND, nextBellIn: null, delayIn: null, currentPeriod: 0, nextEventLabel: isHoliday ? getHolidayName(m, d) : 'დასვენება' };
     }
     const currentTimeInSeconds = hour * 3600 + minute * 60 + second;
     const firstStart = BELL_TIMES[0].start.split(':').map(Number);
@@ -126,10 +123,26 @@ const App: React.FC = () => {
     return { status: BellStatus.AFTER_SCHOOL, nextBellIn: null, delayIn: null, currentPeriod: 0, nextEventLabel: 'დასრულდა' };
   }, [tbilisiTimeData]);
 
-  const currentLesson = useMemo(() => {
+  // Logic for what to show in the info card
+  const lessonToShow = useMemo(() => {
     const daySchedule = LESSON_SCHEDULE[tbilisiTimeData.day];
-    return daySchedule && currentPeriod > 0 ? daySchedule[currentPeriod - 1] : null;
-  }, [tbilisiTimeData.day, currentPeriod]);
+    if (!daySchedule) return null;
+
+    if (status === BellStatus.BEFORE_SCHOOL) {
+      return { label: 'პირველი გაკვეთილი', lesson: daySchedule[0] };
+    }
+    
+    if (status === BellStatus.LESSON) {
+      return { label: 'ახლა გვაქვს', lesson: daySchedule[currentPeriod - 1] };
+    }
+    
+    if (status === BellStatus.BREAK) {
+      const next = daySchedule[currentPeriod];
+      return next ? { label: 'შემდეგი გაკვეთილი', lesson: next } : null;
+    }
+    
+    return null;
+  }, [tbilisiTimeData.day, status, currentPeriod]);
 
   const holidaysByMonth = useMemo(() => {
     const groups: Record<number, { day: number, name: string }[]> = {};
@@ -188,7 +201,6 @@ const App: React.FC = () => {
 
   return (
     <div className={`min-h-screen transition-colors duration-500 ${isDarkMode ? 'text-slate-100' : 'text-slate-800'} p-4 md:p-8 flex flex-col items-center max-w-7xl mx-auto selection:bg-indigo-500 selection:text-white`}>
-      {/* Settings Bar */}
       <div className="w-full flex justify-end gap-3 mb-6">
         <button 
           onClick={() => setIsDarkMode(!isDarkMode)} 
@@ -206,7 +218,6 @@ const App: React.FC = () => {
         </p>
       </header>
 
-      {/* Main Bell Countdown */}
       <main className={`w-full max-w-2xl rounded-[3rem] border p-8 md:p-14 mb-8 text-center relative overflow-hidden transition-all ${theme.card}`}>
         <div className={`absolute top-0 left-0 w-full h-2 ${delayIn ? 'bg-amber-500 animate-pulse' : status === BellStatus.LESSON ? 'bg-indigo-500' : status === BellStatus.BREAK ? 'bg-emerald-500' : 'bg-slate-700'}`} />
         <div className="flex flex-col items-center">
@@ -216,17 +227,18 @@ const App: React.FC = () => {
           <div className={`text-8xl md:text-[10rem] font-black tabular-nums tracking-tighter leading-none mb-6 ${theme.head}`}>
             {delayIn !== null ? formatTimeRemaining(delayIn) : formatTimeRemaining(nextBellIn)}
           </div>
-          {currentLesson && (
+          {lessonToShow && (
             <div className={`w-full rounded-[2.5rem] p-8 flex flex-col items-center border transition-all ${theme.muted}`}>
-              <span className="text-slate-500 text-[10px] uppercase font-black mb-2 tracking-widest">ახლა გვაქვს</span>
-              <h3 className={`text-3xl font-black ${theme.head}`}>{currentLesson.subject}</h3>
-              <p className={`${theme.sub} font-black text-lg mt-1`}>{currentLesson.teacher}</p>
+              <span className={`text-[10px] uppercase font-black mb-2 tracking-widest ${status === BellStatus.BREAK ? 'text-indigo-500' : 'text-slate-500'}`}>
+                {lessonToShow.label}
+              </span>
+              <h3 className={`text-3xl font-black ${theme.head}`}>{lessonToShow.lesson.subject}</h3>
+              <p className={`${theme.sub} font-black text-lg mt-1`}>{lessonToShow.lesson.teacher}</p>
             </div>
           )}
         </div>
       </main>
 
-      {/* Action: Grades Portal */}
       <a 
         href="https://onlineschool.emis.ge/" 
         target="_blank" 
@@ -245,7 +257,6 @@ const App: React.FC = () => {
         <ExternalLink size={18} className="text-slate-400 transition-transform group-hover:scale-110" />
       </a>
 
-      {/* Schedule Table */}
       <section className="w-full mb-16">
         <h2 className={`text-3xl font-black mb-8 px-2 ${theme.head}`}>გაკვეთილების ცხრილი (10-1)</h2>
         <div className={`rounded-[2.5rem] border overflow-hidden overflow-x-auto transition-all ${theme.card}`}>
@@ -288,7 +299,6 @@ const App: React.FC = () => {
         </div>
       </section>
 
-      {/* Next Holiday Countdown */}
       {nextHolidayInfo && (
         <section className="w-full max-w-4xl mb-20">
           <div className={`p-8 md:p-10 rounded-[2.5rem] border flex flex-col md:flex-row items-center justify-between gap-6 transition-all ${isDarkMode ? 'bg-indigo-500/10 border-indigo-500/20' : 'bg-indigo-50 border-indigo-100 shadow-xl shadow-indigo-500/5'}`}>
@@ -314,7 +324,6 @@ const App: React.FC = () => {
         </section>
       )}
 
-      {/* Full 2026 Holiday Grid */}
       <section className="w-full mb-24">
         <div className="flex flex-col items-center mb-12">
             <h2 className={`text-4xl md:text-5xl font-black tracking-tight text-center ${theme.head}`}>2026 წლის უქმე დღეები</h2>
@@ -329,7 +338,6 @@ const App: React.FC = () => {
 
             if (holidays.length === 0) return null;
 
-            // Group consecutive same-name days for ranges
             const groups = holidays.reduce((acc: any[], curr) => {
               if (acc.length > 0) {
                 const last = acc[acc.length - 1];
