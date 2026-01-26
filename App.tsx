@@ -1,3 +1,4 @@
+
 import { Calendar, Clock, Coffee, GraduationCap, Info, LayoutGrid, Moon, PartyPopper, Sun, ArrowRight, BellRing, Bell, ExternalLink, BookOpenCheck, Flag } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react';
 import { BELL_TIMES, HOLIDAYS_2026, LESSON_SCHEDULE, WEEKDAYS_GE, HOLIDAY_NAMES_GE, HOLIDAY_RANGES } from './constants';
@@ -41,17 +42,14 @@ const getHolidayName = (m: number, d: number) => {
   return 'დასვენება';
 };
 
-const formatTimeRemaining = (seconds: number | null, forceFull = false) => {
-  if (seconds === null) return '00:00:00';
+const formatTimeRemaining = (seconds: number | null) => {
+  if (seconds === null) return null;
   const s = Math.ceil(seconds);
   const hrs = Math.floor(s / 3600);
   const mins = Math.floor((s % 3600) / 60);
   const secs = s % 60;
   
-  if (hrs > 0 || forceFull) {
-    return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  }
-  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 };
 
 const App: React.FC = () => {
@@ -84,11 +82,10 @@ const App: React.FC = () => {
     return { day: tbilisiNow.getDay(), m: parseInt(month), d: parseInt(date), hour, minute, second, year, raw: tbilisiNow };
   }, [now]);
 
-  const { status, nextBellIn, delayIn, currentPeriod, nextEventLabel, nextSchoolDay } = useMemo(() => {
+  const { status, nextBellIn, delayIn, currentPeriod, nextEventLabel, nextSchoolDay, showTimer } = useMemo(() => {
     const { day, m, d, hour, minute, second, raw } = tbilisiTimeData;
     const isHoliday = checkIsHoliday(m, d);
     
-    // Logic for next school day start
     const getNextSchoolStartTime = () => {
       let nextDate = new Date(raw);
       nextDate.setHours(8, 30, 0, 0);
@@ -108,57 +105,74 @@ const App: React.FC = () => {
     const currentTimeInSeconds = hour * 3600 + minute * 60 + second;
     const firstStart = BELL_TIMES[0].start.split(':').map(Number);
     const startOfDaySecs = firstStart[0] * 3600 + firstStart[1] * 60;
-    const lastEnd = BELL_TIMES[BELL_TIMES.length - 1].end.split(':').map(Number);
+    
+    // Determine the last lesson for TODAY specifically
+    const todaySchedule = LESSON_SCHEDULE[day] || [];
+    const lastLessonIndex = todaySchedule.length > 0 ? todaySchedule.length - 1 : BELL_TIMES.length - 1;
+    const lastEnd = BELL_TIMES[lastLessonIndex].end.split(':').map(Number);
     const endOfDaySecs = lastEnd[0] * 3600 + lastEnd[1] * 60;
 
-    // Before school starts today
-    if (currentTimeInSeconds < startOfDaySecs && !isHoliday && day !== 0 && day !== 6) {
-      return { status: BellStatus.BEFORE_SCHOOL, nextBellIn: startOfDaySecs - currentTimeInSeconds, delayIn: null, currentPeriod: 0, nextEventLabel: 'პირველი გაკვეთილის დაწყებამდე', nextSchoolDay: day };
-    }
-
-    // Weekend or holiday or after school - need countdown to next school day
+    // School is closed logic (Weekend or Holiday or After Last Lesson)
     if (day === 0 || day === 6 || isHoliday || currentTimeInSeconds > endOfDaySecs + BELL_DELAY_SECONDS) {
       const nextInfo = getNextSchoolStartTime();
-      const diffSecs = (nextInfo.time.getTime() - raw.getTime()) / 1000;
       let label = 'სკოლის დაწყებამდე';
       if (day === 5 || day === 6 || day === 0) label = 'ორშაბათამდე';
       else label = 'ხვალამდე';
 
       return { 
-        status: day === 0 || day === 6 || isHoliday ? BellStatus.WEEKEND : BellStatus.AFTER_SCHOOL, 
-        nextBellIn: diffSecs, 
+        status: (day === 0 || day === 6 || isHoliday) ? BellStatus.WEEKEND : BellStatus.AFTER_SCHOOL, 
+        nextBellIn: null, // User requested no timer after school/on weekends
         delayIn: null, 
         currentPeriod: 0, 
         nextEventLabel: label,
-        nextSchoolDay: nextInfo.day
+        nextSchoolDay: nextInfo.day,
+        showTimer: false
       };
     }
 
-    for (let i = 0; i < BELL_TIMES.length; i++) {
+    // Before school today (from 00:00 to 08:30)
+    if (currentTimeInSeconds < startOfDaySecs) {
+      return { 
+        status: BellStatus.BEFORE_SCHOOL, 
+        nextBellIn: startOfDaySecs - currentTimeInSeconds, 
+        delayIn: null, 
+        currentPeriod: 0, 
+        nextEventLabel: 'გაკვეთილების დაწყებამდე',
+        showTimer: true 
+      };
+    }
+
+    // Ongoing school day
+    for (let i = 0; i < todaySchedule.length; i++) {
       const b = BELL_TIMES[i];
       const s = b.start.split(':').map(Number);
       const e = b.end.split(':').map(Number);
       const sSecs = s[0] * 3600 + s[1] * 60;
       const eSecs = e[0] * 3600 + e[1] * 60;
+      
       if (currentTimeInSeconds >= sSecs && currentTimeInSeconds < eSecs) {
-        return { status: BellStatus.LESSON, nextBellIn: eSecs - currentTimeInSeconds, delayIn: null, currentPeriod: i + 1, nextEventLabel: 'გაკვეთილის დასრულებამდე' };
+        return { status: BellStatus.LESSON, nextBellIn: eSecs - currentTimeInSeconds, delayIn: null, currentPeriod: i + 1, nextEventLabel: 'გაკვეთილის დასრულებამდე', showTimer: true };
       }
       if (currentTimeInSeconds >= eSecs && currentTimeInSeconds < eSecs + BELL_DELAY_SECONDS) {
-        return { status: BellStatus.LESSON, nextBellIn: 0, delayIn: (eSecs + BELL_DELAY_SECONDS) - currentTimeInSeconds, currentPeriod: i + 1, nextEventLabel: 'ზარის მოლოდინი (დაგვიანება)' };
+        return { status: BellStatus.LESSON, nextBellIn: 0, delayIn: (eSecs + BELL_DELAY_SECONDS) - currentTimeInSeconds, currentPeriod: i + 1, nextEventLabel: 'ზარის მოლოდინი (დაგვიანება)', showTimer: true };
       }
-      if (i < BELL_TIMES.length - 1) {
+      if (i < todaySchedule.length - 1) {
         const nextStart = BELL_TIMES[i+1].start.split(':').map(Number);
         const nsSecs = nextStart[0] * 3600 + nextStart[1] * 60;
         if (currentTimeInSeconds >= eSecs + BELL_DELAY_SECONDS && currentTimeInSeconds < nsSecs) {
-           return { status: BellStatus.BREAK, nextBellIn: nsSecs - currentTimeInSeconds, delayIn: null, currentPeriod: i + 1, nextEventLabel: 'დასვენების დასრულებამდე' };
+           return { status: BellStatus.BREAK, nextBellIn: nsSecs - currentTimeInSeconds, delayIn: null, currentPeriod: i + 1, nextEventLabel: 'დასვენების დასრულებამდე', showTimer: true };
         }
         if (currentTimeInSeconds >= nsSecs && currentTimeInSeconds < nsSecs + BELL_DELAY_SECONDS) {
-          return { status: BellStatus.BREAK, nextBellIn: 0, delayIn: (nsSecs + BELL_DELAY_SECONDS) - currentTimeInSeconds, currentPeriod: i + 1, nextEventLabel: 'ზარის მოლოდინი (დაწყება)' };
+          return { status: BellStatus.BREAK, nextBellIn: 0, delayIn: (nsSecs + BELL_DELAY_SECONDS) - currentTimeInSeconds, currentPeriod: i + 1, nextEventLabel: 'ზარის მოლოდინი (დაწყება)', showTimer: true };
         }
       }
     }
-    return { status: BellStatus.AFTER_SCHOOL, nextBellIn: null, delayIn: null, currentPeriod: 0, nextEventLabel: 'დასრულდა' };
+
+    return { status: BellStatus.AFTER_SCHOOL, nextBellIn: null, delayIn: null, currentPeriod: 0, nextEventLabel: 'დასრულდა', showTimer: false };
   }, [tbilisiTimeData]);
+
+  // isLongCountdown is true if we are in a state that represents a long gap between school hours (weekend, holiday, after school, or early morning)
+  const isLongCountdown = status === BellStatus.BEFORE_SCHOOL || status === BellStatus.AFTER_SCHOOL || status === BellStatus.WEEKEND;
 
   const lessonData = useMemo(() => {
     const isOut = status === BellStatus.AFTER_SCHOOL || status === BellStatus.WEEKEND;
@@ -204,7 +218,7 @@ const App: React.FC = () => {
   }, [tbilisiTimeData.day, status, currentPeriod, nextSchoolDay]);
 
   const { holidayStatusByDay, nextHolidayInfo, holidaysByMonth } = useMemo(() => {
-    const { raw } = tbilisiTimeData;
+    const { raw, year } = tbilisiTimeData;
     
     const hStatus: Record<number, boolean> = {};
     const tempDate = new Date(raw);
@@ -223,7 +237,7 @@ const App: React.FC = () => {
 
     for (const hStr of HOLIDAYS_2026) {
       const [m, d] = hStr.split('-').map(Number);
-      let hDate = new Date(raw.getFullYear(), m - 1, d);
+      let hDate = new Date(2026, m - 1, d);
       if (hDate.getTime() < raw.getTime()) {
         hDate.setFullYear(raw.getFullYear() + 1);
       }
@@ -239,38 +253,17 @@ const App: React.FC = () => {
       }
     }
 
-    for (const range of HOLIDAY_RANGES) {
-      let hDate = new Date(raw.getFullYear(), range.start.m - 1, range.start.d);
-      if (hDate.getTime() < raw.getTime()) {
-        const startVal = range.start.m * 100 + range.start.d;
-        const endVal = range.end.m * 100 + range.end.d;
-        const curVal = (raw.getMonth() + 1) * 100 + raw.getDate();
-        let inRange = false;
-        if (startVal <= endVal) inRange = curVal >= startVal && curVal <= endVal;
-        else inRange = curVal >= startVal || curVal <= endVal;
-        
-        if (inRange) continue;
-        hDate.setFullYear(raw.getFullYear() + 1);
-      }
-      
-      const diff = hDate.getTime() - raw.getTime();
-      if (diff > 0 && diff < minDiff) {
-        minDiff = diff;
-        nextInfo = { 
-          name: range.name, 
-          date: hDate, 
-          days: Math.ceil(diff / (1000 * 60 * 60 * 24)) 
-        };
-      }
-    }
-
-    const groups: Record<number, { day: number, name: string }[]> = {};
+    const groups: Record<number, { day: number, name: string, isWeekend: boolean }[]> = {};
     for (let m = 1; m <= 12; m++) {
       const daysInMonth = new Date(2026, m, 0).getDate();
       for (let d = 1; d <= daysInMonth; d++) {
         if (checkIsHoliday(m, d)) {
           if (!groups[m]) groups[m] = [];
-          groups[m].push({ day: d, name: getHolidayName(m, d) });
+          // Determine if this specific date is a weekend in 2026
+          const holidayDate = new Date(2026, m - 1, d);
+          const dow = holidayDate.getDay();
+          const isWeekend = dow === 0 || dow === 6;
+          groups[m].push({ day: d, name: getHolidayName(m, d), isWeekend });
         }
       }
     }
@@ -287,10 +280,7 @@ const App: React.FC = () => {
     muted: isDarkMode ? 'bg-white/5 border-white/5' : 'bg-slate-50 border-slate-100',
     border: isDarkMode ? 'border-white/5' : 'border-slate-100',
     accent: isDarkMode ? 'bg-indigo-500/10 text-indigo-400' : 'bg-indigo-600 text-white shadow-lg shadow-indigo-200',
-    holidayCard: isDarkMode ? 'bg-zinc-900/50 hover:bg-zinc-800' : 'bg-white hover:bg-slate-50 border-slate-100'
   };
-
-  const isLongCountdown = status === BellStatus.AFTER_SCHOOL || status === BellStatus.WEEKEND;
 
   return (
     <div className={`min-h-screen transition-colors duration-500 ${isDarkMode ? 'text-slate-100' : 'text-slate-800'} p-4 md:p-8 flex flex-col items-center max-w-7xl mx-auto selection:bg-indigo-500 selection:text-white`}>
@@ -316,10 +306,12 @@ const App: React.FC = () => {
 
       <header className="text-center mb-10">
         <h1 className={`text-4xl md:text-7xl font-black mb-2 tracking-tight ${theme.head}`}>ზარი რამდენ ხანშია?</h1>
-        <p className={`${theme.sub} flex items-center justify-center gap-2 font-medium text-lg`}>
-          <Calendar size={20} className="text-indigo-400" />
-          {WEEKDAYS_GE[tbilisiTimeData.day]}, {tbilisiTimeData.hour.toString().padStart(2, '0')}:{tbilisiTimeData.minute.toString().padStart(2, '0')}
-        </p>
+        <div className="flex flex-col items-center">
+          <p className={`${theme.sub} flex items-center justify-center gap-2 font-medium text-lg`}>
+            <Calendar size={20} className="text-indigo-400" />
+            {WEEKDAYS_GE[tbilisiTimeData.day]}, {tbilisiTimeData.hour.toString().padStart(2, '0')}:{tbilisiTimeData.minute.toString().padStart(2, '0')}
+          </p>
+        </div>
       </header>
 
       <main className={`w-full max-w-2xl rounded-[3rem] border p-8 md:p-14 mb-8 text-center relative overflow-hidden transition-all ${theme.card}`}>
@@ -329,8 +321,17 @@ const App: React.FC = () => {
           <span className={`px-5 py-2 rounded-full text-[10px] font-black mb-8 flex items-center gap-2 uppercase tracking-[0.2em] ${status === BellStatus.LESSON ? (isDarkMode ? 'bg-indigo-500/10 text-indigo-400' : 'bg-indigo-100 text-indigo-700') : (isDarkMode ? 'bg-slate-800 text-slate-400' : 'bg-slate-100 text-slate-600')}`}>
             {status === BellStatus.LESSON ? <GraduationCap size={18} /> : status === BellStatus.BREAK ? <Coffee size={18} /> : <Flag size={18} />} {nextEventLabel}
           </span>
-          <div className={`text-6xl md:text-[9rem] font-black tabular-nums tracking-tighter leading-none mb-6 ${theme.head}`}>
-            {delayIn !== null ? formatTimeRemaining(delayIn, isLongCountdown) : formatTimeRemaining(nextBellIn, isLongCountdown)}
+          
+          <div className="mb-6">
+            {showTimer ? (
+              <div className={`text-6xl md:text-[9rem] font-black tabular-nums tracking-tighter leading-none ${theme.head}`}>
+                {delayIn !== null ? formatTimeRemaining(delayIn) : formatTimeRemaining(nextBellIn)}
+              </div>
+            ) : (
+              <div className={`text-3xl md:text-5xl font-black py-10 opacity-30 ${theme.head}`}>
+                — — : — —
+              </div>
+            )}
           </div>
           
           {lessonData && (
@@ -344,7 +345,7 @@ const App: React.FC = () => {
                    <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-black ${isDarkMode ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30' : 'bg-indigo-600 text-white'}`}>
                       {lessonData.current.num}
                    </div>
-                   <span className={`text-[10px] uppercase font-black tracking-widest ${status === BellStatus.BREAK || isLongCountdown ? 'text-indigo-500' : 'text-slate-500'}`}>
+                   <span className={`text-[10px] uppercase font-black tracking-widest ${status === BellStatus.BREAK || !showTimer ? 'text-indigo-500' : 'text-slate-500'}`}>
                     {lessonData.current.label}
                   </span>
                 </div>
@@ -492,7 +493,7 @@ const App: React.FC = () => {
                   return acc;
                 }
               }
-              acc.push({ start: curr.day, end: curr.day, name: curr.name });
+              acc.push({ start: curr.day, end: curr.day, name: curr.name, isWeekend: curr.isWeekend });
               return acc;
             }, []);
 
@@ -501,8 +502,8 @@ const App: React.FC = () => {
                 <h3 className={`font-black text-3xl mb-8 ${isCurr ? 'text-indigo-500' : theme.head}`}>{monthName}</h3>
                 <div className="space-y-4">
                   {holidayGroups.map((g: any, i: number) => (
-                    <div key={i} className={`flex items-center gap-4 p-4 rounded-2xl border transition-all ${theme.holidayCard} ${theme.border}`}>
-                       <div className={`w-14 h-12 rounded-2xl flex flex-col items-center justify-center font-black shrink-0 shadow-lg ${g.end > g.start ? 'bg-indigo-500 text-white' : 'bg-red-500 text-white shadow-red-500/20'}`}>
+                    <div key={i} className={`flex items-center gap-4 p-4 rounded-2xl border transition-all ${isDarkMode ? 'bg-zinc-900/50 hover:bg-zinc-800' : 'bg-white hover:bg-slate-50'} ${theme.border}`}>
+                       <div className={`w-14 h-12 rounded-2xl flex flex-col items-center justify-center font-black shrink-0 shadow-lg ${g.isWeekend ? 'bg-red-500 text-white' : 'bg-emerald-500 text-white shadow-emerald-500/20'}`}>
                         <span className="text-sm leading-none">{g.start}</span>
                         {g.end > g.start && (
                           <><div className="w-1/2 h-[1px] bg-white/30 my-0.5" /><span className="text-sm leading-none">{g.end}</span></>
@@ -510,7 +511,9 @@ const App: React.FC = () => {
                        </div>
                        <div className="flex flex-col min-w-0">
                           <span className={`font-black text-sm truncate ${theme.head}`}>{g.name}</span>
-                          <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{g.end > g.start ? 'არდადეგები' : 'დასვენება'}</span>
+                          <span className={`text-[10px] font-bold uppercase tracking-widest ${g.isWeekend ? 'text-red-500/70' : 'text-emerald-500/70'}`}>
+                            {g.isWeekend ? 'შაბათ-კვირა (გამოტოვებული)' : 'დასვენება'}
+                          </span>
                        </div>
                     </div>
                   ))}
