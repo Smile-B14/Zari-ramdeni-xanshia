@@ -45,10 +45,10 @@ export const LESSON_SCHEDULE: DailySchedule = {
     { subject: 'საქართ. ისტორია', teacher: 'დონდაძე' },
   ],
   5: [ // პარასკევი
-    { subject: 'ბიოლოგია', teacher: 'დურგლიშვილი' }, // Swapped from index 3
+    { subject: 'ბიოლოგია', teacher: 'დურგლიშვილი' },
     { subject: 'მათემატიკა', teacher: 'ხუციშვილი' },
     { subject: 'ქართ. ენა და ლიტ', teacher: 'მდივანი' },
-    { subject: 'სახ. და გამ. ხელ.', teacher: 'ენდელაძე' }, // Swapped from index 0
+    { subject: 'სახ. და გამ. ხელ.', teacher: 'ენდელაძე' },
     { subject: 'ფიზიკა', teacher: 'მ. დვალი' },
     { subject: 'პროექტ. მოქალაქ.', teacher: 'ტატაევი' },
     { subject: 'რუსულ/გერმ', teacher: 'ობოლ/ნადირ' },
@@ -57,18 +57,23 @@ export const LESSON_SCHEDULE: DailySchedule = {
 
 export const WEEKDAYS_GE = ["კვირა", "ორშაბათი", "სამშაბათი", "ოთხშაბათი", "ხუთშაბათი", "პარასკევი", "შაბათი"];
 
-// Holidays in 2026 (Month-Day)
-export const HOLIDAYS_2026 = [
-  "01-01", "01-02", "01-05", "01-06", "01-07", "01-19", // Jan
-  "03-03", "03-08", // Mar
-  "04-09", "04-10", "04-11", "04-12", "04-13", // Apr
-  "05-09", "05-12", "05-17", "05-26", // May
-  "08-28", // Aug
-  "10-14", // Oct
-  "11-23", // Nov (Fixed from 23-11)
+// Holiday Range Definitions
+export const HOLIDAY_RANGES = [
+  { start: { m: 6, d: 15 }, end: { m: 9, d: 15 }, name: 'საზაფხულო არდადეგები' },
+  { start: { m: 12, d: 30 }, end: { m: 1, d: 15 }, name: 'საზამთრო არდადეგები' },
 ];
 
-// Georgian names for the holidays (approximate)
+// Single Holidays in 2026 (Month-Day)
+export const HOLIDAYS_2026 = [
+  "01-01", "01-02", "01-05", "01-06", "01-07", "01-19",
+  "03-03", "03-08",
+  "04-09", "04-10", "04-11", "04-12", "04-13",
+  "05-09", "05-12", "05-17", "05-26",
+  "08-28",
+  "10-14",
+  "11-23",
+];
+
 export const HOLIDAY_NAMES_GE: Record<string, string> = {
   "01-01": "ახალი წელი",
   "01-02": "ბედობა",
