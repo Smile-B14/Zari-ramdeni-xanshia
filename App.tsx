@@ -1,4 +1,3 @@
-
 import { Calendar, Clock, Coffee, GraduationCap, Info, LayoutGrid, Moon, PartyPopper, Sun, ArrowRight, BellRing, Bell, ExternalLink, BookOpenCheck, Flag } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react';
 import { BELL_TIMES, HOLIDAYS_2026, LESSON_SCHEDULE, WEEKDAYS_GE, HOLIDAY_NAMES_GE, HOLIDAY_RANGES } from './constants';
@@ -259,11 +258,17 @@ const App: React.FC = () => {
       for (let d = 1; d <= daysInMonth; d++) {
         if (checkIsHoliday(m, d)) {
           if (!groups[m]) groups[m] = [];
-          // Determine if this specific date is a weekend in 2026
+          
+          const name = getHolidayName(m, d);
           const holidayDate = new Date(2026, m - 1, d);
           const dow = holidayDate.getDay();
-          const isWeekend = dow === 0 || dow === 6;
-          groups[m].push({ day: d, name: getHolidayName(m, d), isWeekend });
+          
+          // Check if it is a long break (Ardadagebi)
+          const isLongBreak = name.includes('არდადეგები');
+          // Only mark as weekend miss if it's NOT a long break
+          const isWeekend = !isLongBreak && (dow === 0 || dow === 6);
+          
+          groups[m].push({ day: d, name, isWeekend });
         }
       }
     }
@@ -445,31 +450,6 @@ const App: React.FC = () => {
           </table>
         </div>
       </section>
-
-      {nextHolidayInfo && (
-        <section className="w-full max-w-4xl mb-20">
-          <div className={`p-8 md:p-10 rounded-[2.5rem] border flex flex-col md:flex-row items-center justify-between gap-6 transition-all ${isDarkMode ? 'bg-indigo-500/10 border-indigo-500/20' : 'bg-indigo-50 border-indigo-100 shadow-xl shadow-indigo-500/5'}`}>
-            <div className="flex items-center gap-6 text-left">
-               <div className="w-20 h-20 rounded-3xl bg-indigo-500 flex items-center justify-center text-white shadow-2xl shadow-indigo-500/30">
-                 <BellRing size={40} className="animate-pulse" />
-               </div>
-               <div>
-                 <h3 className={`text-2xl font-black ${theme.head}`}>შემდეგი დასვენება</h3>
-                 <p className="text-indigo-500 font-black text-xl flex items-center gap-2">
-                   <ArrowRight size={18} /> {nextHolidayInfo.name}
-                 </p>
-               </div>
-            </div>
-            <div className="text-center md:text-right">
-                <div className="flex items-baseline gap-2">
-                  <span className="text-6xl md:text-7xl font-black text-indigo-500 tabular-nums tracking-tighter">{nextHolidayInfo.days}</span>
-                  <span className={`text-2xl font-black uppercase tracking-widest ${theme.sub}`}>დღეში</span>
-                </div>
-                <p className="text-xs font-bold opacity-60 uppercase tracking-widest">{nextHolidayInfo.date.toLocaleDateString('ka-GE', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
-            </div>
-          </div>
-        </section>
-      )}
 
       <section className="w-full mb-24">
         <div className="flex flex-col items-center mb-12">
