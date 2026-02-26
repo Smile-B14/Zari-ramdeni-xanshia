@@ -234,22 +234,31 @@ const App: React.FC = () => {
     let nextInfo = null;
     let minDiff = Infinity;
 
-    for (const hStr of HOLIDAYS_2026) {
-      const [m, d] = hStr.split('-').map(Number);
-      let hDate = new Date(2026, m - 1, d);
-      if (hDate.getTime() < raw.getTime()) {
-        hDate.setFullYear(raw.getFullYear() + 1);
+    const checkHolidayDate = (m: number, d: number, name: string) => {
+      let hDate = new Date(year, m - 1, d);
+      // If the holiday has already passed this year, check next year
+      if (hDate.getTime() < raw.getTime() - 24 * 60 * 60 * 1000) {
+        hDate.setFullYear(year + 1);
       }
       
       const diff = hDate.getTime() - raw.getTime();
       if (diff > 0 && diff < minDiff) {
         minDiff = diff;
         nextInfo = { 
-          name: HOLIDAY_NAMES_GE[hStr] || 'დასვენება', 
+          name, 
           date: hDate, 
           days: Math.ceil(diff / (1000 * 60 * 60 * 24)) 
         };
       }
+    };
+
+    for (const hStr of HOLIDAYS_2026) {
+      const [m, d] = hStr.split('-').map(Number);
+      checkHolidayDate(m, d, HOLIDAY_NAMES_GE[hStr] || 'დასვენება');
+    }
+
+    for (const range of HOLIDAY_RANGES) {
+      checkHolidayDate(range.start.m, range.start.d, range.name);
     }
 
     const groups: Record<number, { day: number, name: string, isWeekend: boolean }[]> = {};
@@ -309,31 +318,31 @@ const App: React.FC = () => {
         </button>
       </div>
 
-      <header className="text-center mb-10">
-        <h1 className={`text-4xl md:text-7xl font-black mb-2 tracking-tight ${theme.head}`}>ზარი რამდენ ხანშია?</h1>
+      <header className="text-center mb-8 md:mb-10">
+        <h1 className={`text-3xl sm:text-4xl md:text-7xl font-black mb-2 tracking-tight ${theme.head}`}>ზარი რამდენ ხანშია?</h1>
         <div className="flex flex-col items-center">
-          <p className={`${theme.sub} flex items-center justify-center gap-2 font-medium text-lg`}>
-            <Calendar size={20} className="text-indigo-400" />
-            {WEEKDAYS_GE[tbilisiTimeData.day]}, {tbilisiTimeData.hour.toString().padStart(2, '0')}:{tbilisiTimeData.minute.toString().padStart(2, '0')}
+          <p className={`${theme.sub} flex items-center justify-center gap-2 font-medium text-base md:text-lg`}>
+            <Calendar size={18} className="text-indigo-400" />
+            {tbilisiTimeData.d} {MONTH_NAMES_GE[tbilisiTimeData.m - 1]} • {WEEKDAYS_GE[tbilisiTimeData.day]}, {tbilisiTimeData.hour.toString().padStart(2, '0')}:{tbilisiTimeData.minute.toString().padStart(2, '0')}
           </p>
         </div>
       </header>
 
-      <main className={`w-full max-w-2xl rounded-[3rem] border p-8 md:p-14 mb-8 text-center relative overflow-hidden transition-all ${theme.card}`}>
+      <main className={`w-full max-w-2xl rounded-[2rem] md:rounded-[3rem] border p-6 md:p-14 mb-8 text-center relative overflow-hidden transition-all ${theme.card}`}>
         <div className={`absolute top-0 left-0 w-full h-2 ${delayIn ? 'bg-amber-500 animate-pulse' : status === BellStatus.LESSON ? 'bg-indigo-500' : status === BellStatus.BREAK ? 'bg-emerald-500' : 'bg-slate-700'}`} />
         
         <div className="flex flex-col items-center relative z-10">
-          <span className={`px-5 py-2 rounded-full text-[10px] font-black mb-8 flex items-center gap-2 uppercase tracking-[0.2em] ${status === BellStatus.LESSON ? (isDarkMode ? 'bg-indigo-500/10 text-indigo-400' : 'bg-indigo-100 text-indigo-700') : (isDarkMode ? 'bg-slate-800 text-slate-400' : 'bg-slate-100 text-slate-600')}`}>
-            {status === BellStatus.LESSON ? <GraduationCap size={18} /> : status === BellStatus.BREAK ? <Coffee size={18} /> : <Flag size={18} />} {nextEventLabel}
+          <span className={`px-4 py-1.5 md:px-5 md:py-2 rounded-full text-[9px] md:text-[10px] font-black mb-6 md:mb-8 flex items-center gap-2 uppercase tracking-[0.2em] ${status === BellStatus.LESSON ? (isDarkMode ? 'bg-indigo-500/10 text-indigo-400' : 'bg-indigo-100 text-indigo-700') : (isDarkMode ? 'bg-slate-800 text-slate-400' : 'bg-slate-100 text-slate-600')}`}>
+            {status === BellStatus.LESSON ? <GraduationCap size={16} /> : status === BellStatus.BREAK ? <Coffee size={16} /> : <Flag size={16} />} {nextEventLabel}
           </span>
           
-          <div className="mb-6">
+          <div className="mb-4 md:mb-6">
             {showTimer ? (
-              <div className={`text-6xl md:text-[9rem] font-black tabular-nums tracking-tighter leading-none ${theme.head}`}>
+              <div className={`text-4xl sm:text-6xl md:text-[9rem] font-black tabular-nums tracking-tighter leading-none ${theme.head}`}>
                 {delayIn !== null ? formatTimeRemaining(delayIn) : formatTimeRemaining(nextBellIn)}
               </div>
             ) : (
-              <div className={`text-3xl md:text-5xl font-black py-10 opacity-30 ${theme.head}`}>
+              <div className={`text-2xl sm:text-3xl md:text-5xl font-black py-6 md:py-10 opacity-30 ${theme.head}`}>
                 — — : — —
               </div>
             )}
@@ -390,6 +399,24 @@ const App: React.FC = () => {
           )}
         </div>
       </main>
+
+      {nextHolidayInfo && (
+        <div className={`w-full max-w-2xl mb-8 p-5 md:p-6 rounded-[2rem] border flex items-center justify-between transition-all ${theme.card}`}>
+          <div className="flex items-center gap-3 md:gap-4">
+            <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center ${isDarkMode ? 'bg-amber-500/10 text-amber-400' : 'bg-amber-100 text-amber-600'}`}>
+              <PartyPopper size={20} className="md:w-6 md:h-6" />
+            </div>
+            <div className="flex flex-col text-left">
+              <span className={`text-sm md:text-base font-black tracking-tight ${theme.head}`}>უახლოესი დასვენება</span>
+              <span className={`text-[10px] md:text-xs font-bold ${theme.sub}`}>{nextHolidayInfo.name} ({nextHolidayInfo.date.getDate()} {MONTH_NAMES_GE[nextHolidayInfo.date.getMonth()]})</span>
+            </div>
+          </div>
+          <div className="flex flex-col items-end">
+            <span className={`text-xl md:text-3xl font-black ${isDarkMode ? 'text-amber-400' : 'text-amber-600'}`}>{nextHolidayInfo.days}</span>
+            <span className={`text-[9px] md:text-[10px] uppercase font-black tracking-widest ${theme.sub}`}>დღეში</span>
+          </div>
+        </div>
+      )}
 
       <a 
         href="https://onlineschool.emis.ge/" 
