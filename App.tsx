@@ -51,6 +51,56 @@ const formatTimeRemaining = (seconds: number | null) => {
   return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 };
 
+const getColorConfig = (color: string, isDark: boolean) => {
+  const map: Record<string, any> = {
+    indigo: {
+      glow: isDark ? 'radial-gradient(circle at 50% -20%, rgba(99,102,241,0.25), transparent 70vw)' : 'radial-gradient(circle at 50% -20%, rgba(99,102,241,0.15), transparent 70vw)',
+      text: isDark ? 'text-indigo-400' : 'text-indigo-600',
+      bg: 'bg-indigo-500',
+      bgSubtle: isDark ? 'bg-indigo-500/10' : 'bg-indigo-50',
+      border: isDark ? 'border-indigo-500/20' : 'border-indigo-200',
+      selection: 'selection:bg-indigo-500 selection:text-white',
+      buttonActive: 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/25',
+      ring: 'ring-indigo-500/50',
+      badge: isDark ? 'bg-indigo-500/10 text-indigo-400' : 'bg-indigo-100 text-indigo-700',
+    },
+    emerald: {
+      glow: isDark ? 'radial-gradient(circle at 50% -20%, rgba(16,185,129,0.25), transparent 70vw)' : 'radial-gradient(circle at 50% -20%, rgba(16,185,129,0.15), transparent 70vw)',
+      text: isDark ? 'text-emerald-400' : 'text-emerald-600',
+      bg: 'bg-emerald-500',
+      bgSubtle: isDark ? 'bg-emerald-500/10' : 'bg-emerald-50',
+      border: isDark ? 'border-emerald-500/20' : 'border-emerald-200',
+      selection: 'selection:bg-emerald-500 selection:text-white',
+      buttonActive: 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/25',
+      ring: 'ring-emerald-500/50',
+      badge: isDark ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-100 text-emerald-700',
+    },
+    amber: {
+      glow: isDark ? 'radial-gradient(circle at 50% -20%, rgba(245,158,11,0.25), transparent 70vw)' : 'radial-gradient(circle at 50% -20%, rgba(245,158,11,0.15), transparent 70vw)',
+      text: isDark ? 'text-amber-400' : 'text-amber-600',
+      bg: 'bg-amber-500',
+      bgSubtle: isDark ? 'bg-amber-500/10' : 'bg-amber-50',
+      border: isDark ? 'border-amber-500/20' : 'border-amber-200',
+      selection: 'selection:bg-amber-500 selection:text-white',
+      buttonActive: 'bg-amber-500 text-white shadow-lg shadow-amber-500/25',
+      ring: 'ring-amber-500/50',
+      badge: isDark ? 'bg-amber-500/10 text-amber-400' : 'bg-amber-100 text-amber-700',
+    },
+    slate: {
+      glow: isDark ? 'radial-gradient(circle at 50% -20%, rgba(148,163,184,0.15), transparent 70vw)' : 'radial-gradient(circle at 50% -20%, rgba(148,163,184,0.1), transparent 70vw)',
+      text: isDark ? 'text-slate-400' : 'text-slate-600',
+      bg: 'bg-slate-500',
+      bgSubtle: isDark ? 'bg-slate-800/50' : 'bg-slate-100',
+      border: isDark ? 'border-slate-700' : 'border-slate-200',
+      selection: 'selection:bg-slate-500 selection:text-white',
+      buttonActive: 'bg-slate-700 text-white shadow-lg shadow-slate-500/25',
+      ring: 'ring-slate-500/50',
+      badge: isDark ? 'bg-slate-800 text-slate-400' : 'bg-slate-100 text-slate-600',
+    }
+  };
+  return map[color];
+};
+
 const App: React.FC = () => {
   const [now, setNow] = useState(new Date());
   const [isDarkMode, setIsDarkMode] = useState(true);
@@ -62,13 +112,6 @@ const App: React.FC = () => {
     const timer = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
-
-  useEffect(() => {
-    const bgColor = isDarkMode ? '#09090b' : '#f8fafc';
-    document.documentElement.style.backgroundColor = bgColor;
-    document.body.style.backgroundColor = bgColor;
-    document.documentElement.className = isDarkMode ? 'bg-zinc-950 transition-colors duration-500' : 'bg-slate-50 transition-colors duration-500';
-  }, [isDarkMode]);
 
   const tbilisiTimeData = useMemo(() => {
     const formatter = new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Tbilisi', hour12: false, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -288,56 +331,91 @@ const App: React.FC = () => {
     return { holidayStatusByDay: hStatus, nextHolidayInfo: nextInfo, holidaysByMonth: groups };
   }, [tbilisiTimeData]);
 
+  const activeColor = delayIn !== null 
+    ? 'amber' 
+    : status === BellStatus.LESSON 
+      ? 'indigo' 
+      : status === BellStatus.BREAK 
+        ? 'emerald' 
+        : 'slate';
+  const activeTheme = getColorConfig(activeColor, isDarkMode);
+
+  useEffect(() => {
+    const bgColors = {
+      dark: {
+        indigo: '#0c0a1d',
+        emerald: '#061810',
+        amber: '#1a1305',
+        slate: '#09090b',
+      },
+      light: {
+        indigo: '#f5f7ff',
+        emerald: '#f2fdf7',
+        amber: '#fffbf0',
+        slate: '#f8fafc',
+      }
+    };
+    
+    const bgColor = isDarkMode ? bgColors.dark[activeColor as keyof typeof bgColors.dark] : bgColors.light[activeColor as keyof typeof bgColors.light];
+    document.documentElement.style.backgroundColor = bgColor;
+    document.body.style.backgroundColor = bgColor;
+    document.documentElement.className = 'transition-colors duration-1000';
+  }, [isDarkMode, activeColor]);
+
   const theme = {
     card: isDarkMode 
-      ? 'bg-zinc-900 border-white/5 shadow-2xl' 
-      : 'bg-white border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)]',
+      ? 'bg-zinc-900/80 backdrop-blur-xl border-white/5 shadow-2xl' 
+      : 'bg-white/80 backdrop-blur-xl border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)]',
     sub: isDarkMode ? 'text-slate-400' : 'text-slate-500 font-semibold',
     head: isDarkMode ? 'text-white' : 'text-slate-900',
     muted: isDarkMode ? 'bg-white/5 border-white/5' : 'bg-slate-50 border-slate-100',
     border: isDarkMode ? 'border-white/5' : 'border-slate-100',
-    accent: isDarkMode ? 'bg-indigo-500/10 text-indigo-400' : 'bg-indigo-600 text-white shadow-lg shadow-indigo-200',
   };
 
   return (
-    <div className={`min-h-screen transition-colors duration-500 ${isDarkMode ? 'text-slate-100' : 'text-slate-800'} p-4 md:p-8 flex flex-col items-center max-w-7xl mx-auto selection:bg-indigo-500 selection:text-white`}>
-      <style>{`
-        .finish-pattern {
-          background-image: repeating-conic-gradient(#000 0 90deg, #fff 0 180deg);
-          background-size: 16px 16px;
-        }
-        .finish-pattern-dark {
-          background-image: repeating-conic-gradient(#333 0 90deg, #000 0 180deg);
-          background-size: 16px 16px;
-        }
-      `}</style>
+    <div className={`min-h-screen transition-colors duration-1000 ${isDarkMode ? 'text-slate-100' : 'text-slate-800'} p-4 md:p-8 flex flex-col items-center max-w-7xl mx-auto ${activeTheme.selection}`}>
+      <div 
+        className="fixed inset-0 pointer-events-none transition-all duration-1000 ease-in-out z-0"
+        style={{ background: activeTheme.glow }}
+      />
+      <div className="relative z-10 w-full flex flex-col items-center">
+        <style>{`
+          .finish-pattern {
+            background-image: repeating-conic-gradient(#000 0 90deg, #fff 0 180deg);
+            background-size: 16px 16px;
+          }
+          .finish-pattern-dark {
+            background-image: repeating-conic-gradient(#333 0 90deg, #000 0 180deg);
+            background-size: 16px 16px;
+          }
+        `}</style>
 
-      <div className="w-full flex justify-end gap-3 mb-6">
-        <button 
-          onClick={() => setIsDarkMode(!isDarkMode)} 
-          className={`p-3.5 rounded-2xl transition-all ${isDarkMode ? 'bg-zinc-800 text-amber-400' : 'bg-white border border-slate-200 text-indigo-600 shadow-sm hover:shadow-md'}`}
-        >
-          {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
-        </button>
-      </div>
-
-      <header className="text-center mb-8 md:mb-10">
-        <h1 className={`text-3xl sm:text-4xl md:text-7xl font-black mb-2 tracking-tight ${theme.head}`}>ზარი რამდენ ხანშია?</h1>
-        <div className="flex flex-col items-center">
-          <p className={`${theme.sub} flex items-center justify-center gap-2 font-medium text-base md:text-lg`}>
-            <Calendar size={18} className="text-indigo-400" />
-            {tbilisiTimeData.d} {MONTH_NAMES_GE[tbilisiTimeData.m - 1]} • {WEEKDAYS_GE[tbilisiTimeData.day]}, {tbilisiTimeData.hour.toString().padStart(2, '0')}:{tbilisiTimeData.minute.toString().padStart(2, '0')}
-          </p>
+        <div className="w-full flex justify-end gap-3 mb-6">
+          <button 
+            onClick={() => setIsDarkMode(!isDarkMode)} 
+            className={`p-3.5 rounded-2xl transition-all ${isDarkMode ? 'bg-zinc-800 text-amber-400' : 'bg-white border border-slate-200 text-indigo-600 shadow-sm hover:shadow-md'}`}
+          >
+            {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+          </button>
         </div>
-      </header>
 
-      <main className={`w-full max-w-2xl rounded-[2rem] md:rounded-[3rem] border p-6 md:p-14 mb-8 text-center relative overflow-hidden transition-all ${theme.card}`}>
-        <div className={`absolute top-0 left-0 w-full h-2 ${delayIn ? 'bg-amber-500 animate-pulse' : status === BellStatus.LESSON ? 'bg-indigo-500' : status === BellStatus.BREAK ? 'bg-emerald-500' : 'bg-slate-700'}`} />
-        
-        <div className="flex flex-col items-center relative z-10">
-          <span className={`px-4 py-1.5 md:px-5 md:py-2 rounded-full text-[9px] md:text-[10px] font-black mb-6 md:mb-8 flex items-center gap-2 uppercase tracking-[0.2em] ${status === BellStatus.LESSON ? (isDarkMode ? 'bg-indigo-500/10 text-indigo-400' : 'bg-indigo-100 text-indigo-700') : (isDarkMode ? 'bg-slate-800 text-slate-400' : 'bg-slate-100 text-slate-600')}`}>
-            {status === BellStatus.LESSON ? <GraduationCap size={16} /> : status === BellStatus.BREAK ? <Coffee size={16} /> : <Flag size={16} />} {nextEventLabel}
-          </span>
+        <header className="text-center mb-8 md:mb-10">
+          <h1 className={`text-3xl sm:text-4xl md:text-7xl font-black mb-2 tracking-tight transition-colors duration-1000 ${theme.head}`}>ზარი რამდენ ხანშია?</h1>
+          <div className="flex flex-col items-center">
+            <p className={`${theme.sub} flex items-center justify-center gap-2 font-medium text-base md:text-lg`}>
+              <Calendar size={18} className={`transition-colors duration-1000 ${activeTheme.text}`} />
+              {tbilisiTimeData.d} {MONTH_NAMES_GE[tbilisiTimeData.m - 1]} • {WEEKDAYS_GE[tbilisiTimeData.day]}, {tbilisiTimeData.hour.toString().padStart(2, '0')}:{tbilisiTimeData.minute.toString().padStart(2, '0')}
+            </p>
+          </div>
+        </header>
+
+        <main className={`w-full max-w-2xl rounded-[2rem] md:rounded-[3rem] border p-6 md:p-14 mb-8 text-center relative overflow-hidden transition-all duration-1000 ${theme.card}`}>
+          <div className={`absolute top-0 left-0 w-full h-2 transition-colors duration-1000 ${delayIn ? 'bg-amber-500 animate-pulse' : activeTheme.bg}`} />
+          
+          <div className="flex flex-col items-center relative z-10">
+            <span className={`px-4 py-1.5 md:px-5 md:py-2 rounded-full text-[9px] md:text-[10px] font-black mb-6 md:mb-8 flex items-center gap-2 uppercase tracking-[0.2em] transition-colors duration-1000 ${activeTheme.badge}`}>
+              {status === BellStatus.LESSON ? <GraduationCap size={16} /> : status === BellStatus.BREAK ? <Coffee size={16} /> : <Flag size={16} />} {nextEventLabel}
+            </span>
           
           <div className="mb-4 md:mb-6">
             {showTimer ? (
@@ -359,10 +437,10 @@ const App: React.FC = () => {
                 )}
                 
                 <div className="flex items-center gap-3 mb-2 relative z-10">
-                   <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-black ${isDarkMode ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30' : 'bg-indigo-600 text-white'}`}>
+                   <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-black transition-colors duration-1000 ${isDarkMode ? `${activeTheme.bgSubtle} ${activeTheme.text} border ${activeTheme.border}` : activeTheme.buttonActive}`}>
                       {lessonData.current.num}
                    </div>
-                   <span className={`text-[10px] uppercase font-black tracking-widest ${status === BellStatus.BREAK || !showTimer ? 'text-indigo-500' : 'text-slate-500'}`}>
+                   <span className={`text-[10px] uppercase font-black tracking-widest transition-colors duration-1000 ${status === BellStatus.BREAK || !showTimer ? activeTheme.text : 'text-slate-500'}`}>
                     {lessonData.current.label}
                   </span>
                 </div>
@@ -386,7 +464,7 @@ const App: React.FC = () => {
                        <div className="w-5 h-5 rounded-md bg-slate-500/10 flex items-center justify-center text-[8px] font-black text-slate-500 border border-slate-500/20">
                           {lessonData.next.num}
                        </div>
-                       <span className="text-[9px] uppercase font-black text-indigo-500/70 tracking-widest">შემდეგი</span>
+                       <span className={`text-[9px] uppercase font-black transition-colors duration-1000 ${activeTheme.text} tracking-widest`}>შემდეგი</span>
                     </div>
                     <h4 className={`text-lg font-black tracking-tight ${theme.head}`}>{lessonData.next.subject}</h4>
                   </div>
@@ -421,23 +499,23 @@ const App: React.FC = () => {
         </div>
       )}
 
-      <a 
-        href="https://onlineschool.emis.ge/" 
-        target="_blank" 
-        rel="noopener noreferrer" 
-        className={`w-full max-w-2xl mb-12 p-6 rounded-[2rem] border flex items-center justify-between group transition-all transform active:scale-95 ${isDarkMode ? 'bg-indigo-500/10 border-indigo-500/20 hover:bg-indigo-500/20' : 'bg-white border-slate-200 shadow-md hover:shadow-lg'}`}
-      >
-        <div className="flex items-center gap-5">
-           <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-transform group-hover:rotate-12 ${theme.accent}`}>
-             <BookOpenCheck size={28} />
-           </div>
-           <div className="flex flex-col text-left">
-              <span className={`text-xl font-black tracking-tight ${theme.head}`}>ნიშნების ნახვა</span>
-              <span className={`text-[10px] uppercase font-black ${isDarkMode ? 'text-indigo-400/70' : 'text-indigo-600/70'}`}>ონლაინ სკოლის პორტალი</span>
-           </div>
-        </div>
-        <ExternalLink size={18} className="text-slate-400 transition-transform group-hover:scale-110" />
-      </a>
+        <a 
+          href="https://onlineschool.emis.ge/" 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          className={`w-full max-w-2xl mb-12 p-6 rounded-[2rem] border flex items-center justify-between group transition-all duration-500 transform active:scale-95 ${isDarkMode ? `${activeTheme.bgSubtle} ${activeTheme.border} hover:bg-white/5` : 'bg-white border-slate-200 shadow-md hover:shadow-lg'}`}
+        >
+          <div className="flex items-center gap-5">
+             <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-500 group-hover:rotate-12 ${activeTheme.buttonActive}`}>
+               <BookOpenCheck size={28} />
+             </div>
+             <div className="flex flex-col text-left">
+                <span className={`text-xl font-black tracking-tight ${theme.head}`}>ნიშნების ნახვა</span>
+                <span className={`text-[10px] uppercase font-black transition-colors duration-500 ${activeTheme.text}`}>ონლაინ სკოლის პორტალი</span>
+             </div>
+          </div>
+          <ExternalLink size={18} className="text-slate-400 transition-transform group-hover:scale-110" />
+        </a>
 
       <section className="w-full mb-16 max-w-2xl mx-auto">
         <div className="flex flex-col items-center mb-8">
@@ -446,19 +524,24 @@ const App: React.FC = () => {
         </div>
         
         <div className="flex overflow-x-auto gap-2 mb-6 pb-2 -mx-4 px-4 md:mx-0 md:px-0 snap-x">
-          {[1, 2, 3, 4, 5].map(d => (
+          {[1, 2, 3, 4, 5].map(d => {
+            const isToday = tbilisiTimeData.day === d;
+            return (
             <button
               key={d}
               onClick={() => setSelectedDay(d)}
-              className={`px-5 py-3 rounded-2xl font-black text-xs md:text-sm whitespace-nowrap transition-all snap-center shrink-0 ${
+              className={`px-5 py-3 rounded-2xl font-black text-xs md:text-sm whitespace-nowrap transition-all duration-500 snap-center shrink-0 relative ${
                 selectedDay === d
-                  ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/25'
+                  ? activeTheme.buttonActive
                   : isDarkMode ? 'bg-zinc-900 text-slate-400 hover:bg-zinc-800 border border-white/5' : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-200'
               }`}
             >
               {WEEKDAYS_GE[d]}
+              {isToday && selectedDay !== d && (
+                <span className={`absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 ${isDarkMode ? 'border-zinc-950' : 'border-slate-50'} ${activeTheme.bg}`} />
+              )}
             </button>
-          ))}
+          )})}
         </div>
 
         <div className="flex flex-col gap-3">
@@ -468,14 +551,14 @@ const App: React.FC = () => {
             const isCurrentLesson = tbilisiTimeData.day === selectedDay && currentPeriod === bi + 1 && !isLongCountdown;
             
             return (
-              <div key={bi} className={`flex items-center gap-4 p-4 md:p-5 rounded-3xl border transition-all ${
+              <div key={bi} className={`flex items-center gap-4 p-4 md:p-5 rounded-3xl border transition-all duration-500 ${
                 isCurrentLesson 
-                  ? (isDarkMode ? 'bg-indigo-500/10 border-indigo-500/30' : 'bg-indigo-50 border-indigo-200') 
+                  ? `${activeTheme.bgSubtle} ${activeTheme.border}` 
                   : (isDarkMode ? 'bg-zinc-900/50 border-white/5' : 'bg-white border-slate-100')
               } ${isHolidayToday ? 'opacity-50' : ''}`}>
-                <div className={`w-12 h-12 md:w-14 md:h-14 rounded-2xl flex flex-col items-center justify-center shrink-0 ${
+                <div className={`w-12 h-12 md:w-14 md:h-14 rounded-2xl flex flex-col items-center justify-center shrink-0 transition-colors duration-500 ${
                   isCurrentLesson
-                    ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/25'
+                    ? activeTheme.buttonActive
                     : isDarkMode ? 'bg-zinc-800 text-slate-400' : 'bg-slate-100 text-slate-500'
                 }`}>
                   <span className="font-black text-lg md:text-xl leading-none">{bell.period}</span>
@@ -508,7 +591,7 @@ const App: React.FC = () => {
             <p className={`mt-2 ${theme.sub} font-bold opacity-70 text-sm md:text-base`}>არდადეგები და სახელმწიფო დასვენებები</p>
         </div>
         
-        <div className="flex overflow-x-auto pb-8 -mx-4 px-4 md:mx-0 md:px-0 gap-4 md:gap-6 snap-x">
+        <div className="flex overflow-x-auto pb-8 -mx-4 px-4 md:mx-0 md:px-0 gap-4 md:gap-6 snap-x snap-mandatory" style={{ scrollBehavior: 'smooth', WebkitOverflowScrolling: 'touch' }}>
           {MONTH_NAMES_GE.map((monthName, idx) => {
             const mNum = idx + 1;
             const holidays = holidaysByMonth[mNum] || [];
@@ -529,8 +612,8 @@ const App: React.FC = () => {
             }, []);
 
             return (
-              <div key={monthName} className={`min-w-[280px] md:min-w-[320px] snap-center shrink-0 p-6 md:p-8 rounded-[2.5rem] border transition-all ${theme.card} ${isCurr ? 'ring-2 ring-indigo-500/50' : ''}`}>
-                <h3 className={`font-black text-2xl mb-6 ${isCurr ? 'text-indigo-500' : theme.head}`}>{monthName}</h3>
+              <div key={monthName} className={`min-w-[280px] md:min-w-[320px] snap-center shrink-0 p-6 md:p-8 rounded-[2.5rem] border transition-all duration-500 ${theme.card} ${isCurr ? `ring-2 ${activeTheme.ring}` : ''}`}>
+                <h3 className={`font-black text-2xl mb-6 transition-colors duration-500 ${isCurr ? activeTheme.text : theme.head}`}>{monthName}</h3>
                 <div className="space-y-3">
                   {holidayGroups.map((g: any, i: number) => {
                     const dayOfWeek = WEEKDAYS_GE[new Date(2026, mNum - 1, g.start).getDay()];
@@ -557,11 +640,12 @@ const App: React.FC = () => {
         </div>
       </section>
 
-      <footer className="text-center py-20 border-t w-full border-slate-200/10">
+      <footer className="text-center py-20 border-t w-full border-slate-200/10 relative z-10">
         <p className="text-[11px] font-black tracking-[0.6em] mb-2 opacity-40">DESIGNED BY SMILE B</p>
         <p className="text-[10px] font-bold opacity-30 uppercase tracking-widest">© 2026. 10-1 კლასის სასკოლო პორტალი</p>
       </footer>
     </div>
+  </div>
   );
 };
 
