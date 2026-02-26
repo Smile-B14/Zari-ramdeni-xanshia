@@ -54,6 +54,9 @@ const formatTimeRemaining = (seconds: number | null) => {
 const App: React.FC = () => {
   const [now, setNow] = useState(new Date());
   const [isDarkMode, setIsDarkMode] = useState(true);
+  const [selectedDay, setSelectedDay] = useState<number>(
+    new Date().getDay() >= 1 && new Date().getDay() <= 5 ? new Date().getDay() : 1
+  );
 
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 1000);
@@ -408,7 +411,7 @@ const App: React.FC = () => {
             </div>
             <div className="flex flex-col text-left">
               <span className={`text-sm md:text-base font-black tracking-tight ${theme.head}`}>უახლოესი დასვენება</span>
-              <span className={`text-[10px] md:text-xs font-bold ${theme.sub}`}>{nextHolidayInfo.name} ({nextHolidayInfo.date.getDate()} {MONTH_NAMES_GE[nextHolidayInfo.date.getMonth()]})</span>
+              <span className={`text-[10px] md:text-xs font-bold ${theme.sub}`}>{nextHolidayInfo.name} ({nextHolidayInfo.date.getDate()} {MONTH_NAMES_GE[nextHolidayInfo.date.getMonth()]}, {WEEKDAYS_GE[nextHolidayInfo.date.getDay()]})</span>
             </div>
           </div>
           <div className="flex flex-col items-end">
@@ -436,55 +439,76 @@ const App: React.FC = () => {
         <ExternalLink size={18} className="text-slate-400 transition-transform group-hover:scale-110" />
       </a>
 
-      <section className="w-full mb-16">
-        <h2 className={`text-3xl font-black mb-8 px-2 ${theme.head}`}>გაკვეთილების ცხრილი (10-1)</h2>
-        <div className={`rounded-[2.5rem] border overflow-hidden overflow-x-auto transition-all ${theme.card}`}>
-          <table className="w-full border-collapse min-w-[800px]">
-            <thead>
-              <tr className={`border-b ${theme.border} ${isDarkMode ? 'bg-white/5' : 'bg-slate-50'}`}>
-                <th className="p-6 text-slate-500 font-black text-[10px] uppercase w-20 text-center">#</th>
-                <th className="p-6 text-slate-500 font-black text-[10px] uppercase text-left">დრო</th>
-                {WEEKDAYS_GE.slice(1,6).map((day, i) => (
-                  <th key={i} className={`p-6 text-slate-500 font-black text-[10px] uppercase tracking-widest ${tbilisiTimeData.day === i+1 ? 'text-indigo-500' : ''}`}>{day}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {BELL_TIMES.map((bell, bi) => (
-                <tr key={bi} className={`border-b ${theme.border} last:border-none transition-colors ${currentPeriod === bi+1 && !isLongCountdown ? (isDarkMode ? 'bg-indigo-500/10' : 'bg-indigo-50/50') : 'hover:bg-indigo-500/[0.02]'}`}>
-                  <td className="p-6 text-center font-black text-slate-500 text-lg">{bell.period}</td>
-                  <td className="p-6 whitespace-nowrap text-left">
-                    <div className="font-black text-base">{bell.start}</div>
-                    <div className="text-xs text-slate-500 font-bold">{bell.end}</div>
-                  </td>
-                  {[1,2,3,4,5].map(d => {
-                    const l = LESSON_SCHEDULE[d][bi];
-                    const isHolidayToday = holidayStatusByDay[d];
-                    return (
-                      <td key={d} className={`p-6 ${tbilisiTimeData.day === d ? (isDarkMode ? 'bg-white/5' : 'bg-slate-50/40') : ''} ${isHolidayToday ? 'opacity-30' : ''}`}>
-                        {l ? (
-                          <div className="text-left">
-                            <div className={`text-sm font-black ${isHolidayToday ? 'line-through' : ''}`}>{l.subject}</div>
-                            <div className="text-[10px] text-slate-500 font-bold mt-0.5">{l.teacher}</div>
-                          </div>
-                        ) : '—'}
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      <section className="w-full mb-16 max-w-2xl mx-auto">
+        <div className="flex flex-col items-center mb-8">
+          <h2 className={`text-3xl font-black px-2 text-center ${theme.head}`}>გაკვეთილების ცხრილი</h2>
+          <p className={`mt-2 ${theme.sub} font-bold opacity-70`}>10-1 კლასი</p>
+        </div>
+        
+        <div className="flex overflow-x-auto gap-2 mb-6 pb-2 -mx-4 px-4 md:mx-0 md:px-0 snap-x">
+          {[1, 2, 3, 4, 5].map(d => (
+            <button
+              key={d}
+              onClick={() => setSelectedDay(d)}
+              className={`px-5 py-3 rounded-2xl font-black text-xs md:text-sm whitespace-nowrap transition-all snap-center shrink-0 ${
+                selectedDay === d
+                  ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/25'
+                  : isDarkMode ? 'bg-zinc-900 text-slate-400 hover:bg-zinc-800 border border-white/5' : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-200'
+              }`}
+            >
+              {WEEKDAYS_GE[d]}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex flex-col gap-3">
+          {BELL_TIMES.map((bell, bi) => {
+            const l = LESSON_SCHEDULE[selectedDay][bi];
+            const isHolidayToday = holidayStatusByDay[selectedDay];
+            const isCurrentLesson = tbilisiTimeData.day === selectedDay && currentPeriod === bi + 1 && !isLongCountdown;
+            
+            return (
+              <div key={bi} className={`flex items-center gap-4 p-4 md:p-5 rounded-3xl border transition-all ${
+                isCurrentLesson 
+                  ? (isDarkMode ? 'bg-indigo-500/10 border-indigo-500/30' : 'bg-indigo-50 border-indigo-200') 
+                  : (isDarkMode ? 'bg-zinc-900/50 border-white/5' : 'bg-white border-slate-100')
+              } ${isHolidayToday ? 'opacity-50' : ''}`}>
+                <div className={`w-12 h-12 md:w-14 md:h-14 rounded-2xl flex flex-col items-center justify-center shrink-0 ${
+                  isCurrentLesson
+                    ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/25'
+                    : isDarkMode ? 'bg-zinc-800 text-slate-400' : 'bg-slate-100 text-slate-500'
+                }`}>
+                  <span className="font-black text-lg md:text-xl leading-none">{bell.period}</span>
+                </div>
+                
+                <div className="flex flex-col min-w-0 flex-1">
+                  {l ? (
+                    <>
+                      <span className={`font-black text-base md:text-lg truncate ${isHolidayToday ? 'line-through' : ''} ${theme.head}`}>{l.subject}</span>
+                      <span className={`text-xs md:text-sm font-bold mt-0.5 truncate ${theme.sub}`}>{l.teacher}</span>
+                    </>
+                  ) : (
+                    <span className={`font-black text-base md:text-lg opacity-30 ${theme.head}`}>—</span>
+                  )}
+                </div>
+                
+                <div className="flex flex-col items-end shrink-0 text-right">
+                  <span className={`font-black text-sm md:text-base ${theme.head}`}>{bell.start}</span>
+                  <span className={`text-[10px] md:text-xs font-bold ${theme.sub}`}>{bell.end}</span>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </section>
 
       <section className="w-full mb-24">
-        <div className="flex flex-col items-center mb-12">
-            <h2 className={`text-4xl md:text-5xl font-black tracking-tight text-center ${theme.head}`}>2026 წლის უქმე დღეები</h2>
-            <p className={`mt-2 ${theme.sub} font-bold opacity-70`}>არდადეგები და სახელმწიფო დასვენებები</p>
+        <div className="flex flex-col items-center mb-10">
+            <h2 className={`text-3xl md:text-4xl font-black tracking-tight text-center ${theme.head}`}>2026 წლის უქმე დღეები</h2>
+            <p className={`mt-2 ${theme.sub} font-bold opacity-70 text-sm md:text-base`}>არდადეგები და სახელმწიფო დასვენებები</p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 w-full">
+        <div className="flex overflow-x-auto pb-8 -mx-4 px-4 md:mx-0 md:px-0 gap-4 md:gap-6 snap-x">
           {MONTH_NAMES_GE.map((monthName, idx) => {
             const mNum = idx + 1;
             const holidays = holidaysByMonth[mNum] || [];
@@ -505,25 +529,27 @@ const App: React.FC = () => {
             }, []);
 
             return (
-              <div key={monthName} className={`p-8 rounded-[3rem] border transition-all ${theme.card} ${isCurr ? 'ring-4 ring-indigo-500/20' : ''}`}>
-                <h3 className={`font-black text-3xl mb-8 ${isCurr ? 'text-indigo-500' : theme.head}`}>{monthName}</h3>
-                <div className="space-y-4">
-                  {holidayGroups.map((g: any, i: number) => (
-                    <div key={i} className={`flex items-center gap-4 p-4 rounded-2xl border transition-all ${isDarkMode ? 'bg-zinc-900/50 hover:bg-zinc-800' : 'bg-white hover:bg-slate-50'} ${theme.border}`}>
-                       <div className={`w-14 h-12 rounded-2xl flex flex-col items-center justify-center font-black shrink-0 shadow-lg ${g.isWeekend ? 'bg-red-500 text-white' : 'bg-emerald-500 text-white shadow-emerald-500/20'}`}>
+              <div key={monthName} className={`min-w-[280px] md:min-w-[320px] snap-center shrink-0 p-6 md:p-8 rounded-[2.5rem] border transition-all ${theme.card} ${isCurr ? 'ring-2 ring-indigo-500/50' : ''}`}>
+                <h3 className={`font-black text-2xl mb-6 ${isCurr ? 'text-indigo-500' : theme.head}`}>{monthName}</h3>
+                <div className="space-y-3">
+                  {holidayGroups.map((g: any, i: number) => {
+                    const dayOfWeek = WEEKDAYS_GE[new Date(2026, mNum - 1, g.start).getDay()];
+                    return (
+                    <div key={i} className={`flex items-center gap-3 p-3 rounded-2xl border transition-all ${isDarkMode ? 'bg-zinc-900/50 hover:bg-zinc-800' : 'bg-white hover:bg-slate-50'} ${theme.border}`}>
+                       <div className={`w-12 h-10 rounded-xl flex flex-col items-center justify-center font-black shrink-0 shadow-sm ${g.isWeekend ? 'bg-red-500/10 text-red-500' : 'bg-emerald-500/10 text-emerald-500'}`}>
                         <span className="text-sm leading-none">{g.start}</span>
                         {g.end > g.start && (
-                          <><div className="w-1/2 h-[1px] bg-white/30 my-0.5" /><span className="text-sm leading-none">{g.end}</span></>
+                          <><div className="w-1/2 h-[1px] bg-current opacity-30 my-0.5" /><span className="text-sm leading-none">{g.end}</span></>
                         )}
                        </div>
                        <div className="flex flex-col min-w-0">
                           <span className={`font-black text-sm truncate ${theme.head}`}>{g.name}</span>
-                          <span className={`text-[10px] font-bold uppercase tracking-widest ${g.isWeekend ? 'text-red-500/70' : 'text-emerald-500/70'}`}>
-                            {g.isWeekend ? 'შაბათ-კვირა (გამოტოვებული)' : 'დასვენება'}
+                          <span className={`text-[9px] font-bold uppercase tracking-widest ${g.isWeekend ? 'text-red-500/70' : 'text-emerald-500/70'}`}>
+                            {dayOfWeek} • {g.isWeekend ? 'გამოტოვებული' : 'დასვენება'}
                           </span>
                        </div>
                     </div>
-                  ))}
+                  )})}
                 </div>
               </div>
             );
