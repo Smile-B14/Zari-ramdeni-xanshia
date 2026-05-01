@@ -54,48 +54,52 @@ const formatTimeRemaining = (seconds: number | null) => {
 const getColorConfig = (color: string, isDark: boolean) => {
   const map: Record<string, any> = {
     indigo: {
-      glow: isDark ? 'radial-gradient(circle at 50% -20%, rgba(99,102,241,0.25), transparent 70vw)' : 'radial-gradient(circle at 50% -20%, rgba(99,102,241,0.15), transparent 70vw)',
-      text: isDark ? 'text-indigo-400' : 'text-indigo-600',
+      shape1: isDark ? 'rgba(99,102,241,0.4)' : 'rgba(99,102,241,0.2)',
+      shape2: isDark ? 'rgba(139,92,246,0.3)' : 'rgba(139,92,246,0.15)',
+      text: isDark ? 'text-indigo-300' : 'text-indigo-600',
       bg: 'bg-indigo-500',
-      bgSubtle: isDark ? 'bg-indigo-500/10' : 'bg-indigo-50',
-      border: isDark ? 'border-indigo-500/20' : 'border-indigo-200',
+      bgSubtle: isDark ? 'bg-indigo-500/20' : 'bg-indigo-50/50',
+      border: isDark ? 'border-indigo-500/30' : 'border-indigo-200/50',
       selection: 'selection:bg-indigo-500 selection:text-white',
-      buttonActive: 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/25',
+      buttonActive: isDark ? 'bg-indigo-500 text-white shadow-[0_4px_16px_rgba(99,102,241,0.4),inset_0_1px_1px_rgba(255,255,255,0.2)]' : 'bg-indigo-500 text-white shadow-[0_4px_16px_rgba(99,102,241,0.3),inset_0_1px_1px_rgba(255,255,255,0.4)]',
       ring: 'ring-indigo-500/50',
-      badge: isDark ? 'bg-indigo-500/10 text-indigo-400' : 'bg-indigo-100 text-indigo-700',
+      badge: isDark ? 'bg-indigo-500/20 backdrop-blur-md text-indigo-300 border border-indigo-400/30 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]' : 'bg-white/60 backdrop-blur-sm text-indigo-700 border border-indigo-200 shadow-sm',
     },
     emerald: {
-      glow: isDark ? 'radial-gradient(circle at 50% -20%, rgba(16,185,129,0.25), transparent 70vw)' : 'radial-gradient(circle at 50% -20%, rgba(16,185,129,0.15), transparent 70vw)',
-      text: isDark ? 'text-emerald-400' : 'text-emerald-600',
+      shape1: isDark ? 'rgba(16,185,129,0.3)' : 'rgba(16,185,129,0.15)',
+      shape2: isDark ? 'rgba(52,211,153,0.25)' : 'rgba(52,211,153,0.15)',
+      text: isDark ? 'text-emerald-300' : 'text-emerald-600',
       bg: 'bg-emerald-500',
-      bgSubtle: isDark ? 'bg-emerald-500/10' : 'bg-emerald-50',
-      border: isDark ? 'border-emerald-500/20' : 'border-emerald-200',
+      bgSubtle: isDark ? 'bg-emerald-500/20' : 'bg-emerald-50/50',
+      border: isDark ? 'border-emerald-500/30' : 'border-emerald-200/50',
       selection: 'selection:bg-emerald-500 selection:text-white',
-      buttonActive: 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/25',
+      buttonActive: isDark ? 'bg-emerald-500 text-white shadow-[0_4px_16px_rgba(16,185,129,0.4),inset_0_1px_1px_rgba(255,255,255,0.2)]' : 'bg-emerald-500 text-white shadow-[0_4px_16px_rgba(16,185,129,0.3),inset_0_1px_1px_rgba(255,255,255,0.4)]',
       ring: 'ring-emerald-500/50',
-      badge: isDark ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-100 text-emerald-700',
+      badge: isDark ? 'bg-emerald-500/20 backdrop-blur-md text-emerald-300 border border-emerald-400/30 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]' : 'bg-white/60 backdrop-blur-sm text-emerald-700 border border-emerald-200 shadow-sm',
     },
     amber: {
-      glow: isDark ? 'radial-gradient(circle at 50% -20%, rgba(245,158,11,0.25), transparent 70vw)' : 'radial-gradient(circle at 50% -20%, rgba(245,158,11,0.15), transparent 70vw)',
-      text: isDark ? 'text-amber-400' : 'text-amber-600',
+      shape1: isDark ? 'rgba(245,158,11,0.3)' : 'rgba(245,158,11,0.15)',
+      shape2: isDark ? 'rgba(251,191,36,0.25)' : 'rgba(251,191,36,0.15)',
+      text: isDark ? 'text-amber-300' : 'text-amber-600',
       bg: 'bg-amber-500',
-      bgSubtle: isDark ? 'bg-amber-500/10' : 'bg-amber-50',
-      border: isDark ? 'border-amber-500/20' : 'border-amber-200',
+      bgSubtle: isDark ? 'bg-amber-500/20' : 'bg-amber-50/50',
+      border: isDark ? 'border-amber-500/30' : 'border-amber-200/50',
       selection: 'selection:bg-amber-500 selection:text-white',
-      buttonActive: 'bg-amber-500 text-white shadow-lg shadow-amber-500/25',
+      buttonActive: isDark ? 'bg-amber-500 text-white shadow-[0_4px_16px_rgba(245,158,11,0.4),inset_0_1px_1px_rgba(255,255,255,0.2)]' : 'bg-amber-500 text-white shadow-[0_4px_16px_rgba(245,158,11,0.3),inset_0_1px_1px_rgba(255,255,255,0.4)]',
       ring: 'ring-amber-500/50',
-      badge: isDark ? 'bg-amber-500/10 text-amber-400' : 'bg-amber-100 text-amber-700',
+      badge: isDark ? 'bg-amber-500/20 backdrop-blur-md text-amber-300 border border-amber-400/30 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]' : 'bg-white/60 backdrop-blur-sm text-amber-700 border border-amber-200 shadow-sm',
     },
     slate: {
-      glow: isDark ? 'radial-gradient(circle at 50% -20%, rgba(148,163,184,0.15), transparent 70vw)' : 'radial-gradient(circle at 50% -20%, rgba(148,163,184,0.1), transparent 70vw)',
-      text: isDark ? 'text-slate-400' : 'text-slate-600',
+      shape1: isDark ? 'rgba(148,163,184,0.2)' : 'rgba(148,163,184,0.15)',
+      shape2: isDark ? 'rgba(100,116,139,0.15)' : 'rgba(100,116,139,0.15)',
+      text: isDark ? 'text-slate-300' : 'text-slate-600',
       bg: 'bg-slate-500',
-      bgSubtle: isDark ? 'bg-slate-800/50' : 'bg-slate-100',
-      border: isDark ? 'border-slate-700' : 'border-slate-200',
+      bgSubtle: isDark ? 'bg-white/10' : 'bg-slate-100/50',
+      border: isDark ? 'border-white/20' : 'border-slate-200/50',
       selection: 'selection:bg-slate-500 selection:text-white',
-      buttonActive: 'bg-slate-700 text-white shadow-lg shadow-slate-500/25',
+      buttonActive: isDark ? 'bg-slate-600 text-white shadow-[0_4px_16px_rgba(100,116,139,0.4),inset_0_1px_1px_rgba(255,255,255,0.2)]' : 'bg-slate-700 text-white shadow-[0_4px_16px_rgba(100,116,139,0.3),inset_0_1px_1px_rgba(255,255,255,0.4)]',
       ring: 'ring-slate-500/50',
-      badge: isDark ? 'bg-slate-800 text-slate-400' : 'bg-slate-100 text-slate-600',
+      badge: isDark ? 'bg-white/10 backdrop-blur-md text-slate-300 border border-white/20 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]' : 'bg-white/60 backdrop-blur-sm text-slate-600 border border-slate-200 shadow-sm',
     }
   };
   return map[color];
@@ -343,16 +347,16 @@ const App: React.FC = () => {
   useEffect(() => {
     const bgColors = {
       dark: {
-        indigo: '#0c0a1d',
-        emerald: '#061810',
-        amber: '#1a1305',
-        slate: '#09090b',
+        indigo: '#141421',
+        emerald: '#111814',
+        amber: '#1c1711',
+        slate: '#161618',
       },
       light: {
-        indigo: '#f5f7ff',
-        emerald: '#f2fdf7',
-        amber: '#fffbf0',
-        slate: '#f8fafc',
+        indigo: '#fafbff',
+        emerald: '#f8fdfa',
+        amber: '#fffdf8',
+        slate: '#fcfcfc',
       }
     };
     
@@ -364,20 +368,27 @@ const App: React.FC = () => {
 
   const theme = {
     card: isDarkMode 
-      ? 'bg-zinc-900/80 backdrop-blur-xl border-white/5 shadow-2xl' 
-      : 'bg-white/80 backdrop-blur-xl border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)]',
-    sub: isDarkMode ? 'text-slate-400' : 'text-slate-500 font-semibold',
-    head: isDarkMode ? 'text-white' : 'text-slate-900',
-    muted: isDarkMode ? 'bg-white/5 border-white/5' : 'bg-slate-50 border-slate-100',
-    border: isDarkMode ? 'border-white/5' : 'border-slate-100',
+      ? 'bg-white/[0.04] backdrop-blur-[40px] border-white/[0.15] shadow-[0_16px_40px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.15)]' 
+      : 'bg-white/50 backdrop-blur-3xl border-white/60 shadow-[0_8px_32px_0_rgba(31,38,135,0.07),inset_0_1px_1px_rgba(255,255,255,1)]',
+    sub: isDarkMode ? 'text-slate-300' : 'text-slate-500 font-semibold',
+    head: isDarkMode ? 'text-white drop-shadow-sm' : 'text-slate-900',
+    muted: isDarkMode ? 'bg-black/20 border-white/[0.08] shadow-[inset_0_1px_2px_rgba(0,0,0,0.2)]' : 'bg-white/50 border-white/40 shadow-[inset_0_1px_1px_rgba(255,255,255,0.5)]',
+    border: isDarkMode ? 'border-white/[0.08]' : 'border-slate-300/30',
   };
 
   return (
-    <div className={`min-h-screen transition-colors duration-1000 ${isDarkMode ? 'text-slate-100' : 'text-slate-800'} p-4 md:p-8 flex flex-col items-center max-w-7xl mx-auto ${activeTheme.selection}`}>
+    <div className={`min-h-screen transition-colors duration-1000 ${isDarkMode ? 'text-slate-100' : 'text-slate-800'} p-4 md:p-8 flex flex-col items-center max-w-7xl mx-auto overflow-hidden ${activeTheme.selection}`}>
+      
+      {/* Morphing Background Blobs */}
       <div 
-        className="fixed inset-0 pointer-events-none transition-all duration-1000 ease-in-out z-0"
-        style={{ background: activeTheme.glow }}
+        className="fixed top-[-20%] left-[-10%] w-[50vw] h-[50vw] min-w-[400px] min-h-[400px] rounded-full blur-[100px] opacity-100 transition-colors duration-1000 mix-blend-normal pointer-events-none animate-blob"
+        style={{ background: activeTheme.shape1 }}
       />
+      <div 
+        className="fixed bottom-[-10%] right-[-10%] w-[60vw] h-[60vw] min-w-[500px] min-h-[500px] rounded-full blur-[120px] opacity-100 transition-colors duration-1000 mix-blend-normal pointer-events-none animate-blob animation-delay-2000"
+        style={{ background: activeTheme.shape2 }}
+      />
+
       <div className="relative z-10 w-full flex flex-col items-center">
         <style>{`
           .finish-pattern {
@@ -385,15 +396,27 @@ const App: React.FC = () => {
             background-size: 16px 16px;
           }
           .finish-pattern-dark {
-            background-image: repeating-conic-gradient(#333 0 90deg, #000 0 180deg);
+            background-image: repeating-conic-gradient(rgba(255,255,255,0.05) 0 90deg, rgba(0,0,0,0.1) 0 180deg);
             background-size: 16px 16px;
+          }
+          @keyframes blob {
+            0% { transform: translate(0px, 0px) scale(1); }
+            33% { transform: translate(30px, -50px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+            100% { transform: translate(0px, 0px) scale(1); }
+          }
+          .animate-blob {
+            animation: blob 15s infinite alternate ease-in-out;
+          }
+          .animation-delay-2000 {
+            animation-delay: -5s;
           }
         `}</style>
 
-        <div className="w-full flex justify-end gap-3 mb-6">
+        <div className="w-full flex justify-end gap-3 mb-6 relative z-50">
           <button 
             onClick={() => setIsDarkMode(!isDarkMode)} 
-            className={`p-3.5 rounded-2xl transition-all ${isDarkMode ? 'bg-zinc-800 text-amber-400' : 'bg-white border border-slate-200 text-indigo-600 shadow-sm hover:shadow-md'}`}
+            className={`p-3.5 rounded-2xl transition-all border ${isDarkMode ? 'bg-white/[0.05] border-white/[0.15] text-amber-300 hover:bg-white/[0.1] shadow-[0_4px_12px_rgba(0,0,0,0.2),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:-translate-y-0.5' : 'bg-white/60 border-white/80 text-indigo-600 shadow-[0_4px_12px_rgba(0,0,0,0.05),inset_0_1px_1px_rgba(255,255,255,1)] hover:bg-white/80 hover:-translate-y-0.5'} backdrop-blur-xl`}
           >
             {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
           </button>
@@ -410,7 +433,8 @@ const App: React.FC = () => {
         </header>
 
         <main className={`w-full max-w-2xl rounded-[2rem] md:rounded-[3rem] border p-6 md:p-14 mb-8 text-center relative overflow-hidden transition-all duration-1000 ${theme.card}`}>
-          <div className={`absolute top-0 left-0 w-full h-2 transition-colors duration-1000 ${delayIn ? 'bg-amber-500 animate-pulse' : activeTheme.bg}`} />
+          <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
+          <div className={`absolute top-0 left-0 w-full h-1.5 transition-colors duration-1000 ${delayIn ? 'bg-amber-500 animate-pulse' : activeTheme.bg}`} />
           
           <div className="flex flex-col items-center relative z-10">
             <span className={`px-4 py-1.5 md:px-5 md:py-2 rounded-full text-[9px] md:text-[10px] font-black mb-6 md:mb-8 flex items-center gap-2 uppercase tracking-[0.2em] transition-colors duration-1000 ${activeTheme.badge}`}>
@@ -437,7 +461,7 @@ const App: React.FC = () => {
                 )}
                 
                 <div className="flex items-center gap-3 mb-2 relative z-10">
-                   <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-black transition-colors duration-1000 ${isDarkMode ? `${activeTheme.bgSubtle} ${activeTheme.text} border ${activeTheme.border}` : activeTheme.buttonActive}`}>
+                   <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-black transition-colors duration-1000 shadow-inner ${isDarkMode ? `${activeTheme.bgSubtle} ${activeTheme.text} border ${activeTheme.border}` : activeTheme.buttonActive}`}>
                       {lessonData.current.num}
                    </div>
                    <span className={`text-[10px] uppercase font-black tracking-widest transition-colors duration-1000 ${status === BellStatus.BREAK || !showTimer ? activeTheme.text : 'text-slate-500'}`}>
@@ -454,7 +478,7 @@ const App: React.FC = () => {
               </div>
 
               {lessonData.next && (
-                <div className={`w-full rounded-[2rem] p-5 flex items-center justify-between border transition-all overflow-hidden relative ${isDarkMode ? 'bg-white/[0.03] border-white/[0.05]' : 'bg-white border-slate-100 shadow-sm'}`}>
+                <div className={`w-full rounded-[2rem] p-5 flex items-center justify-between border transition-all overflow-hidden relative ${isDarkMode ? 'bg-black/20 border-white/10 shadow-[inner_0_1px_1px_rgba(255,255,255,0.05)]' : 'bg-white/60 border-white/50 shadow-[0_4px_16px_rgba(0,0,0,0.02)]'}`}>
                   {lessonData.next.isNextLast && (
                     <div className={`absolute inset-0 pointer-events-none opacity-[0.05] ${isDarkMode ? 'finish-pattern-dark' : 'finish-pattern'}`} />
                   )}
@@ -482,7 +506,7 @@ const App: React.FC = () => {
       </main>
 
       {nextHolidayInfo && (
-        <div className={`w-full max-w-2xl mb-8 p-5 md:p-6 rounded-[2rem] border flex items-center justify-between transition-all ${theme.card}`}>
+        <div className={`w-full max-w-2xl mb-8 p-5 md:p-6 rounded-[2rem] border flex items-center justify-between transition-all duration-700 ease-out hover:-translate-y-1 hover:shadow-2xl ${theme.card}`}>
           <div className="flex items-center gap-3 md:gap-4">
             <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center ${isDarkMode ? 'bg-amber-500/10 text-amber-400' : 'bg-amber-100 text-amber-600'}`}>
               <PartyPopper size={20} className="md:w-6 md:h-6" />
@@ -503,10 +527,10 @@ const App: React.FC = () => {
           href="https://onlineschool.emis.ge/" 
           target="_blank" 
           rel="noopener noreferrer" 
-          className={`w-full max-w-2xl mb-12 p-6 rounded-[2rem] border flex items-center justify-between group transition-all duration-500 transform active:scale-95 ${isDarkMode ? `${activeTheme.bgSubtle} ${activeTheme.border} hover:bg-white/5` : 'bg-white border-slate-200 shadow-md hover:shadow-lg'}`}
+          className={`w-full max-w-2xl mb-12 p-6 rounded-[2rem] border flex items-center justify-between group transition-all duration-700 ease-out transform active:scale-95 ${theme.card} hover:-translate-y-1.5 hover:shadow-2xl`}
         >
           <div className="flex items-center gap-5">
-             <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-500 group-hover:rotate-12 ${activeTheme.buttonActive}`}>
+             <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-500 group-hover:rotate-12 ${isDarkMode ? 'bg-white/5 border border-white/5 text-white' : activeTheme.buttonActive}`}>
                <BookOpenCheck size={28} />
              </div>
              <div className="flex flex-col text-left">
@@ -523,22 +547,22 @@ const App: React.FC = () => {
           <p className={`mt-2 ${theme.sub} font-bold opacity-70`}>10-1 კლასი</p>
         </div>
         
-        <div className="flex overflow-x-auto gap-2 mb-6 pb-2 -mx-4 px-4 md:mx-0 md:px-0 snap-x">
+        <div className="flex overflow-x-auto gap-2 mb-6 pb-2 pt-2 -mt-2 -mx-4 px-4 md:mx-0 md:px-0 snap-x">
           {[1, 2, 3, 4, 5].map(d => {
             const isToday = tbilisiTimeData.day === d;
             return (
             <button
               key={d}
               onClick={() => setSelectedDay(d)}
-              className={`px-5 py-3 rounded-2xl font-black text-xs md:text-sm whitespace-nowrap transition-all duration-500 snap-center shrink-0 relative ${
+              className={`px-5 py-3 rounded-2xl font-black text-xs md:text-sm whitespace-nowrap transition-all duration-700 ease-out snap-center shrink-0 relative border backdrop-blur-xl shadow-sm hover:scale-[1.02] active:scale-[0.98] ${
                 selectedDay === d
                   ? activeTheme.buttonActive
-                  : isDarkMode ? 'bg-zinc-900 text-slate-400 hover:bg-zinc-800 border border-white/5' : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-200'
+                  : isDarkMode ? 'bg-white/[0.03] text-slate-300 hover:bg-white/[0.08] border-white/[0.1] shadow-[0_4px_12px_rgba(0,0,0,0.2),inset_0_1px_1px_rgba(255,255,255,0.05)]' : 'bg-white/60 border-white/60 text-slate-500 hover:bg-white/90 shadow-[0_4px_12px_rgba(0,0,0,0.05),inset_0_1px_1px_rgba(255,255,255,1)]'
               }`}
             >
               {WEEKDAYS_GE[d]}
               {isToday && selectedDay !== d && (
-                <span className={`absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 ${isDarkMode ? 'border-zinc-950' : 'border-slate-50'} ${activeTheme.bg}`} />
+                <span className={`absolute -top-1.5 -right-1.5 w-3.5 h-3.5 rounded-full border-2 ${isDarkMode ? 'border-[#161618] border-opacity-50' : 'border-slate-50'} ${activeTheme.bg} shadow-md`} style={{boxShadow: isDarkMode ? '0 0 0 2px rgba(255,255,255,0.05)' : ''}} />
               )}
             </button>
           )})}
@@ -551,15 +575,15 @@ const App: React.FC = () => {
             const isCurrentLesson = tbilisiTimeData.day === selectedDay && currentPeriod === bi + 1 && !isLongCountdown;
             
             return (
-              <div key={bi} className={`flex items-center gap-4 p-4 md:p-5 rounded-3xl border transition-all duration-500 ${
+              <div key={bi} className={`flex items-center gap-4 p-4 md:p-5 rounded-3xl border transition-all duration-500 backdrop-blur-xl ${
                 isCurrentLesson 
-                  ? `${activeTheme.bgSubtle} ${activeTheme.border}` 
-                  : (isDarkMode ? 'bg-zinc-900/50 border-white/5' : 'bg-white border-slate-100')
+                  ? `${isDarkMode ? 'bg-white/[0.08] border-white/[0.2] shadow-[0_8px_24px_rgba(0,0,0,0.2),inset_0_1px_1px_rgba(255,255,255,0.2)]' : 'bg-white border-white/60 shadow-md ring-1 ring-indigo-500/20'}` 
+                  : (isDarkMode ? 'bg-white/[0.02] border-white/[0.05] hover:bg-white/[0.06] hover:shadow-[0_8px_24px_rgba(0,0,0,0.2)]' : 'bg-white/30 border-white/40 hover:bg-white/60 hover:shadow-sm')
               } ${isHolidayToday ? 'opacity-50' : ''}`}>
-                <div className={`w-12 h-12 md:w-14 md:h-14 rounded-2xl flex flex-col items-center justify-center shrink-0 transition-colors duration-500 ${
+                <div className={`w-12 h-12 md:w-14 md:h-14 rounded-2xl flex flex-col items-center justify-center shrink-0 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] transition-colors duration-500 ${
                   isCurrentLesson
                     ? activeTheme.buttonActive
-                    : isDarkMode ? 'bg-zinc-800 text-slate-400' : 'bg-slate-100 text-slate-500'
+                    : isDarkMode ? 'bg-white/[0.03] text-slate-300 border border-white/[0.05]' : 'bg-white/80 text-slate-500 border border-slate-200/50'
                 }`}>
                   <span className="font-black text-lg md:text-xl leading-none">{bell.period}</span>
                 </div>
@@ -612,14 +636,14 @@ const App: React.FC = () => {
             }, []);
 
             return (
-              <div key={monthName} className={`min-w-[280px] md:min-w-[320px] snap-center shrink-0 p-6 md:p-8 rounded-[2.5rem] border transition-all duration-500 ${theme.card} ${isCurr ? `ring-2 ${activeTheme.ring}` : ''}`}>
+              <div key={monthName} className={`min-w-[280px] md:min-w-[320px] snap-center shrink-0 p-6 md:p-8 rounded-[2.5rem] border transition-all duration-700 ease-out hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] ${theme.card} ${isCurr ? `ring-1 ${activeTheme.ring} shadow-[0_0_30px_rgba(255,255,255,0.05)]` : ''}`}>
                 <h3 className={`font-black text-2xl mb-6 transition-colors duration-500 ${isCurr ? activeTheme.text : theme.head}`}>{monthName}</h3>
                 <div className="space-y-3">
                   {holidayGroups.map((g: any, i: number) => {
                     const dayOfWeek = WEEKDAYS_GE[new Date(2026, mNum - 1, g.start).getDay()];
                     return (
-                    <div key={i} className={`flex items-center gap-3 p-3 rounded-2xl border transition-all ${isDarkMode ? 'bg-zinc-900/50 hover:bg-zinc-800' : 'bg-white hover:bg-slate-50'} ${theme.border}`}>
-                       <div className={`w-12 h-10 rounded-xl flex flex-col items-center justify-center font-black shrink-0 shadow-sm ${g.isWeekend ? 'bg-red-500/10 text-red-500' : 'bg-emerald-500/10 text-emerald-500'}`}>
+                    <div key={i} className={`flex items-center gap-3 p-3 rounded-2xl border transition-all ${isDarkMode ? 'bg-white/[0.04] hover:bg-white/[0.08] border-white/[0.08] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]' : 'bg-white/40 border-white/60 hover:bg-white/80 hover:shadow-sm'} backdrop-blur-xl`}>
+                       <div className={`w-12 h-10 rounded-xl flex flex-col items-center justify-center font-black shrink-0 shadow-inner ${g.isWeekend ? 'bg-red-500/20 text-red-400' : isDarkMode ? 'bg-white/10 text-emerald-400' : 'bg-emerald-500/10 text-emerald-600'}`}>
                         <span className="text-sm leading-none">{g.start}</span>
                         {g.end > g.start && (
                           <><div className="w-1/2 h-[1px] bg-current opacity-30 my-0.5" /><span className="text-sm leading-none">{g.end}</span></>
