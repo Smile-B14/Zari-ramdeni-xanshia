@@ -1,5 +1,5 @@
-import { Calendar, Clock, Coffee, GraduationCap, Info, LayoutGrid, Moon, PartyPopper, Sun, ArrowRight, BellRing, Bell, ExternalLink, BookOpenCheck, Flag } from 'lucide-react';
-import React, { useEffect, useMemo, useState } from 'react';
+import { Calendar, Clock, Coffee, GraduationCap, Info, LayoutGrid, Moon, PartyPopper, Sun, ArrowRight, BellRing, Bell, ExternalLink, BookOpenCheck, Flag, Volume2, VolumeX, Vibrate, VibrateOff } from 'lucide-react';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { BELL_TIMES, HOLIDAYS_2026, LESSON_SCHEDULE, WEEKDAYS_GE, HOLIDAY_NAMES_GE, HOLIDAY_RANGES } from './constants';
 import { BellStatus } from './types';
 
@@ -111,6 +111,24 @@ const App: React.FC = () => {
   const [selectedDay, setSelectedDay] = useState<number>(
     new Date().getDay() >= 1 && new Date().getDay() <= 5 ? new Date().getDay() : 1
   );
+
+  const [soundEnabled, setSoundEnabled] = useState(() => {
+    const saved = localStorage.getItem('bell_sound_enabled');
+    return saved ? JSON.parse(saved) : false;
+  });
+  
+  const [vibrationEnabled, setVibrationEnabled] = useState(() => {
+    const saved = localStorage.getItem('bell_vibration_enabled');
+    return saved ? JSON.parse(saved) : true;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('bell_sound_enabled', JSON.stringify(soundEnabled));
+  }, [soundEnabled]);
+
+  useEffect(() => {
+    localStorage.setItem('bell_vibration_enabled', JSON.stringify(vibrationEnabled));
+  }, [vibrationEnabled]);
 
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 1000);
@@ -376,6 +394,42 @@ const App: React.FC = () => {
     border: isDarkMode ? 'border-white/[0.08]' : 'border-slate-300/30',
   };
 
+  const prevStatusRef = useRef<{ delayIn: number | null }>({ delayIn: null });
+  
+  useEffect(() => {
+    if (delayIn !== null && prevStatusRef.current.delayIn === null) {
+      if (soundEnabled) {
+        try {
+          const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+          if (AudioContext) {
+            const ctx = new AudioContext();
+            const playTone = (freq: number, startTime: number) => {
+                const osc = ctx.createOscillator();
+                const gainNode = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, ctx.currentTime + startTime);
+                gainNode.gain.setValueAtTime(0, ctx.currentTime + startTime);
+                gainNode.gain.linearRampToValueAtTime(0.4, ctx.currentTime + startTime + 0.05);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + startTime + 2);
+                osc.connect(gainNode);
+                gainNode.connect(ctx.destination);
+                osc.start(ctx.currentTime + startTime);
+                osc.stop(ctx.currentTime + startTime + 2);
+            };
+            playTone(880, 0);       // A5
+            playTone(1108.73, 0.15); // C#6
+          }
+        } catch(e) {
+          console.error("Audio play failed", e);
+        }
+      }
+      if (vibrationEnabled && navigator.vibrate) {
+        navigator.vibrate([200, 100, 200]);
+      }
+    }
+    prevStatusRef.current.delayIn = delayIn;
+  }, [delayIn, soundEnabled, vibrationEnabled]);
+
   return (
     <div className={`min-h-screen transition-colors duration-1000 ${isDarkMode ? 'text-slate-100' : 'text-slate-800'} p-4 md:p-8 flex flex-col items-center max-w-7xl mx-auto overflow-hidden ${activeTheme.selection}`}>
       
@@ -415,8 +469,34 @@ const App: React.FC = () => {
 
         <div className="w-full flex justify-end gap-3 mb-6 relative z-50">
           <button 
+            onClick={() => setVibrationEnabled(!vibrationEnabled)} 
+            className={`p-3.5 rounded-2xl transition-all border ${isDarkMode ? 'bg-white/[0.05] border-white/[0.15] text-amber-300 hover:bg-white/[0.1] shadow-[0_4px_12px_rgba(0,0,0,0.2),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:-translate-y-0.5' : 'bg-white/60 border-white/80 text-slate-600 shadow-[0_4px_12px_rgba(0,0,0,0.05),inset_0_1px_1px_rgba(255,255,255,1)] hover:bg-white/80 hover:-translate-y-0.5'} backdrop-blur-xl`}
+            title="Toggle Vibration"
+          >
+            {vibrationEnabled ? <Vibrate size={20} /> : <VibrateOff size={20} className="opacity-50" />}
+          </button>
+
+          <button 
+            onClick={() => {
+              setSoundEnabled(!soundEnabled);
+              if (!soundEnabled) {
+                const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+                if (AudioContext) {
+                  const ctx = new AudioContext();
+                  ctx.resume().catch(() => {});
+                }
+              }
+            }} 
+            className={`p-3.5 rounded-2xl transition-all border ${isDarkMode ? 'bg-white/[0.05] border-white/[0.15] text-amber-300 hover:bg-white/[0.1] shadow-[0_4px_12px_rgba(0,0,0,0.2),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:-translate-y-0.5' : 'bg-white/60 border-white/80 text-slate-600 shadow-[0_4px_12px_rgba(0,0,0,0.05),inset_0_1px_1px_rgba(255,255,255,1)] hover:bg-white/80 hover:-translate-y-0.5'} backdrop-blur-xl`}
+            title="Toggle Sound"
+          >
+            {soundEnabled ? <Volume2 size={20} /> : <VolumeX size={20} className="opacity-50" />}
+          </button>
+
+          <button 
             onClick={() => setIsDarkMode(!isDarkMode)} 
             className={`p-3.5 rounded-2xl transition-all border ${isDarkMode ? 'bg-white/[0.05] border-white/[0.15] text-amber-300 hover:bg-white/[0.1] shadow-[0_4px_12px_rgba(0,0,0,0.2),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:-translate-y-0.5' : 'bg-white/60 border-white/80 text-slate-600 shadow-[0_4px_12px_rgba(0,0,0,0.05),inset_0_1px_1px_rgba(255,255,255,1)] hover:bg-white/80 hover:-translate-y-0.5'} backdrop-blur-xl`}
+            title="Toggle Theme"
           >
             {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
           </button>
