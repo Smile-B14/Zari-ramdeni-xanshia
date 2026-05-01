@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { BELL_TIMES, HOLIDAYS_2026, LESSON_SCHEDULE, WEEKDAYS_GE, HOLIDAY_NAMES_GE, HOLIDAY_RANGES } from './constants';
 import { BellStatus } from './types';
 
-const BELL_DELAY_SECONDS = 40; 
+const BELL_DELAY_SECONDS = 60; 
 const MONTH_NAMES_GE = [
   "იანვარი", "თებერვალი", "მარტი", "აპრილი", "მაისი", "ივნისი",
   "ივლისი", "აგვისტო", "სექტემბერი", "ოქტომბერი", "ნოემბერი", "დეკემბერი"
@@ -424,7 +424,7 @@ const App: React.FC = () => {
         }
       }
       if (vibrationEnabled && navigator.vibrate) {
-        navigator.vibrate([200, 100, 200]);
+        navigator.vibrate([100, 50, 100, 50, 100, 50, 100, 50, 100]);
       }
     }
     prevStatusRef.current.delayIn = delayIn;
@@ -467,10 +467,10 @@ const App: React.FC = () => {
           }
         `}</style>
 
-        <div className="w-full flex justify-end gap-3 mb-6 relative z-50">
+        <div className="w-full flex justify-end gap-2 md:gap-3 mb-4 md:mb-6 relative z-50">
           <button 
             onClick={() => setVibrationEnabled(!vibrationEnabled)} 
-            className={`p-3.5 rounded-2xl transition-all border ${isDarkMode ? 'bg-white/[0.05] border-white/[0.15] text-amber-300 hover:bg-white/[0.1] shadow-[0_4px_12px_rgba(0,0,0,0.2),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:-translate-y-0.5' : 'bg-white/60 border-white/80 text-slate-600 shadow-[0_4px_12px_rgba(0,0,0,0.05),inset_0_1px_1px_rgba(255,255,255,1)] hover:bg-white/80 hover:-translate-y-0.5'} backdrop-blur-xl`}
+            className={`p-2.5 md:p-3.5 rounded-2xl transition-all border ${isDarkMode ? 'bg-white/[0.05] border-white/[0.15] text-amber-300 hover:bg-white/[0.1] shadow-[0_4px_12px_rgba(0,0,0,0.2),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:-translate-y-0.5' : 'bg-white/80 border-white text-slate-500 hover:text-slate-800 shadow-[0_2px_10px_rgba(0,0,0,0.05)] hover:bg-white hover:-translate-y-0.5'} backdrop-blur-xl`}
             title="Toggle Vibration"
           >
             {vibrationEnabled ? <Vibrate size={20} /> : <VibrateOff size={20} className="opacity-50" />}
@@ -487,7 +487,7 @@ const App: React.FC = () => {
                 }
               }
             }} 
-            className={`p-3.5 rounded-2xl transition-all border ${isDarkMode ? 'bg-white/[0.05] border-white/[0.15] text-amber-300 hover:bg-white/[0.1] shadow-[0_4px_12px_rgba(0,0,0,0.2),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:-translate-y-0.5' : 'bg-white/60 border-white/80 text-slate-600 shadow-[0_4px_12px_rgba(0,0,0,0.05),inset_0_1px_1px_rgba(255,255,255,1)] hover:bg-white/80 hover:-translate-y-0.5'} backdrop-blur-xl`}
+            className={`p-2.5 md:p-3.5 rounded-2xl transition-all border ${isDarkMode ? 'bg-white/[0.05] border-white/[0.15] text-amber-300 hover:bg-white/[0.1] shadow-[0_4px_12px_rgba(0,0,0,0.2),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:-translate-y-0.5' : 'bg-white/80 border-white text-slate-500 hover:text-slate-800 shadow-[0_2px_10px_rgba(0,0,0,0.05)] hover:bg-white hover:-translate-y-0.5'} backdrop-blur-xl`}
             title="Toggle Sound"
           >
             {soundEnabled ? <Volume2 size={20} /> : <VolumeX size={20} className="opacity-50" />}
@@ -495,7 +495,7 @@ const App: React.FC = () => {
 
           <button 
             onClick={() => setIsDarkMode(!isDarkMode)} 
-            className={`p-3.5 rounded-2xl transition-all border ${isDarkMode ? 'bg-white/[0.05] border-white/[0.15] text-amber-300 hover:bg-white/[0.1] shadow-[0_4px_12px_rgba(0,0,0,0.2),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:-translate-y-0.5' : 'bg-white/60 border-white/80 text-slate-600 shadow-[0_4px_12px_rgba(0,0,0,0.05),inset_0_1px_1px_rgba(255,255,255,1)] hover:bg-white/80 hover:-translate-y-0.5'} backdrop-blur-xl`}
+            className={`p-2.5 md:p-3.5 rounded-2xl transition-all border ${isDarkMode ? 'bg-white/[0.05] border-white/[0.15] text-amber-300 hover:bg-white/[0.1] shadow-[0_4px_12px_rgba(0,0,0,0.2),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:-translate-y-0.5' : 'bg-white/80 border-white text-slate-500 hover:text-slate-800 shadow-[0_2px_10px_rgba(0,0,0,0.05)] hover:bg-white hover:-translate-y-0.5'} backdrop-blur-xl`}
             title="Toggle Theme"
           >
             {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
