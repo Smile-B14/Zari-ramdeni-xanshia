@@ -53,17 +53,17 @@ const formatTimeRemaining = (seconds: number | null) => {
 
 const getColorConfig = (color: string, isDark: boolean) => {
   const map: Record<string, any> = {
-    indigo: {
-      shape1: isDark ? 'rgba(99,102,241,0.4)' : 'rgba(99,102,241,0.2)',
-      shape2: isDark ? 'rgba(139,92,246,0.3)' : 'rgba(139,92,246,0.15)',
-      text: isDark ? 'text-indigo-300' : 'text-indigo-600',
-      bg: 'bg-indigo-500',
-      bgSubtle: isDark ? 'bg-indigo-500/20' : 'bg-indigo-50/50',
-      border: isDark ? 'border-indigo-500/30' : 'border-indigo-200/50',
-      selection: 'selection:bg-indigo-500 selection:text-white',
-      buttonActive: isDark ? 'bg-indigo-500 text-white shadow-[0_4px_16px_rgba(99,102,241,0.4),inset_0_1px_1px_rgba(255,255,255,0.2)]' : 'bg-indigo-500 text-white shadow-[0_4px_16px_rgba(99,102,241,0.3),inset_0_1px_1px_rgba(255,255,255,0.4)]',
-      ring: 'ring-indigo-500/50',
-      badge: isDark ? 'bg-indigo-500/20 backdrop-blur-md text-indigo-300 border border-indigo-400/30 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]' : 'bg-white/60 backdrop-blur-sm text-indigo-700 border border-indigo-200 shadow-sm',
+    blue: {
+      shape1: isDark ? 'rgba(59,130,246,0.35)' : 'rgba(59,130,246,0.15)',
+      shape2: isDark ? 'rgba(96,165,250,0.3)' : 'rgba(96,165,250,0.15)',
+      text: isDark ? 'text-blue-300' : 'text-blue-600',
+      bg: 'bg-blue-500',
+      bgSubtle: isDark ? 'bg-blue-500/20' : 'bg-blue-50/50',
+      border: isDark ? 'border-blue-500/30' : 'border-blue-200/50',
+      selection: 'selection:bg-blue-500 selection:text-white',
+      buttonActive: isDark ? 'bg-blue-500 text-white shadow-[0_4px_16px_rgba(59,130,246,0.4),inset_0_1px_1px_rgba(255,255,255,0.2)]' : 'bg-blue-500 text-white shadow-[0_4px_16px_rgba(59,130,246,0.3),inset_0_1px_1px_rgba(255,255,255,0.4)]',
+      ring: 'ring-blue-500/50',
+      badge: isDark ? 'bg-blue-500/20 backdrop-blur-md text-blue-300 border border-blue-400/30 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]' : 'bg-white/60 backdrop-blur-sm text-blue-700 border border-blue-200 shadow-sm',
     },
     emerald: {
       shape1: isDark ? 'rgba(16,185,129,0.3)' : 'rgba(16,185,129,0.15)',
@@ -338,7 +338,7 @@ const App: React.FC = () => {
   const activeColor = delayIn !== null 
     ? 'amber' 
     : status === BellStatus.LESSON 
-      ? 'indigo' 
+      ? 'blue' 
       : status === BellStatus.BREAK 
         ? 'emerald' 
         : 'slate';
@@ -347,13 +347,13 @@ const App: React.FC = () => {
   useEffect(() => {
     const bgColors = {
       dark: {
-        indigo: '#141421',
+        blue: '#0d1323',
         emerald: '#111814',
         amber: '#1c1711',
         slate: '#161618',
       },
       light: {
-        indigo: '#fafbff',
+        blue: '#f4f7ff',
         emerald: '#f8fdfa',
         amber: '#fffdf8',
         slate: '#fcfcfc',
@@ -416,7 +416,7 @@ const App: React.FC = () => {
         <div className="w-full flex justify-end gap-3 mb-6 relative z-50">
           <button 
             onClick={() => setIsDarkMode(!isDarkMode)} 
-            className={`p-3.5 rounded-2xl transition-all border ${isDarkMode ? 'bg-white/[0.05] border-white/[0.15] text-amber-300 hover:bg-white/[0.1] shadow-[0_4px_12px_rgba(0,0,0,0.2),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:-translate-y-0.5' : 'bg-white/60 border-white/80 text-indigo-600 shadow-[0_4px_12px_rgba(0,0,0,0.05),inset_0_1px_1px_rgba(255,255,255,1)] hover:bg-white/80 hover:-translate-y-0.5'} backdrop-blur-xl`}
+            className={`p-3.5 rounded-2xl transition-all border ${isDarkMode ? 'bg-white/[0.05] border-white/[0.15] text-amber-300 hover:bg-white/[0.1] shadow-[0_4px_12px_rgba(0,0,0,0.2),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:-translate-y-0.5' : 'bg-white/60 border-white/80 text-slate-600 shadow-[0_4px_12px_rgba(0,0,0,0.05),inset_0_1px_1px_rgba(255,255,255,1)] hover:bg-white/80 hover:-translate-y-0.5'} backdrop-blur-xl`}
           >
             {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
           </button>
@@ -562,7 +562,7 @@ const App: React.FC = () => {
             >
               {WEEKDAYS_GE[d]}
               {isToday && selectedDay !== d && (
-                <span className={`absolute -top-1.5 -right-1.5 w-3.5 h-3.5 rounded-full border-2 ${isDarkMode ? 'border-[#161618] border-opacity-50' : 'border-slate-50'} ${activeTheme.bg} shadow-md`} style={{boxShadow: isDarkMode ? '0 0 0 2px rgba(255,255,255,0.05)' : ''}} />
+                <span className={`absolute top-1 right-1 w-2.5 h-2.5 rounded-full ${activeTheme.bg} shadow-sm ring-2 ${isDarkMode ? 'ring-black/20' : 'ring-white/50'}`} />
               )}
             </button>
           )})}
@@ -577,7 +577,7 @@ const App: React.FC = () => {
             return (
               <div key={bi} className={`flex items-center gap-4 p-4 md:p-5 rounded-3xl border transition-all duration-500 backdrop-blur-xl ${
                 isCurrentLesson 
-                  ? `${isDarkMode ? 'bg-white/[0.08] border-white/[0.2] shadow-[0_8px_24px_rgba(0,0,0,0.2),inset_0_1px_1px_rgba(255,255,255,0.2)]' : 'bg-white border-white/60 shadow-md ring-1 ring-indigo-500/20'}` 
+                  ? `${isDarkMode ? 'bg-white/[0.08] border-white/[0.2] shadow-[0_8px_24px_rgba(0,0,0,0.2),inset_0_1px_1px_rgba(255,255,255,0.2)]' : 'bg-white border-white/60 shadow-md ring-1 ring-blue-500/20'}` 
                   : (isDarkMode ? 'bg-white/[0.02] border-white/[0.05] hover:bg-white/[0.06] hover:shadow-[0_8px_24px_rgba(0,0,0,0.2)]' : 'bg-white/30 border-white/40 hover:bg-white/60 hover:shadow-sm')
               } ${isHolidayToday ? 'opacity-50' : ''}`}>
                 <div className={`w-12 h-12 md:w-14 md:h-14 rounded-2xl flex flex-col items-center justify-center shrink-0 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] transition-colors duration-500 ${
