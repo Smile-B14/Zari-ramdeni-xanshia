@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { BELL_TIMES, HOLIDAYS_2026, LESSON_SCHEDULE, WEEKDAYS_GE, HOLIDAY_NAMES_GE, HOLIDAY_RANGES } from './constants';
 import { BellStatus } from './types';
 
-const BELL_DELAY_SECONDS = 105; 
+const BELL_DELAY_SECONDS = 40; 
 const MONTH_NAMES_GE = [
   "იანვარი", "თებერვალი", "მარტი", "აპრილი", "მაისი", "ივნისი",
   "ივლისი", "აგვისტო", "სექტემბერი", "ოქტომბერი", "ნოემბერი", "დეკემბერი"
