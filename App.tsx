@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { BELL_TIMES, HOLIDAYS_2026, LESSON_SCHEDULE, WEEKDAYS_GE, HOLIDAY_NAMES_GE, HOLIDAY_RANGES } from './constants';
 import { BellStatus } from './types';
 
-const BELL_DELAY_SECONDS = 60; 
+const BELL_DELAY_SECONDS = 65; 
 const MONTH_NAMES_GE = [
   "იანვარი", "თებერვალი", "მარტი", "აპრილი", "მაისი", "ივნისი",
   "ივლისი", "აგვისტო", "სექტემბერი", "ოქტომბერი", "ნოემბერი", "დეკემბერი"
@@ -443,7 +443,7 @@ const App: React.FC = () => {
         style={{ background: activeTheme.shape2 }}
       />
 
-      <div className="relative z-10 w-full flex flex-col items-center">
+      <div className="relative z-10 w-full max-w-7xl mx-auto flex flex-col xl:grid xl:grid-cols-12 gap-y-6 gap-x-8 xl:gap-x-12 items-start">
         <style>{`
           .finish-pattern {
             background-image: repeating-conic-gradient(#000 0 90deg, #fff 0 180deg);
@@ -467,7 +467,7 @@ const App: React.FC = () => {
           }
         `}</style>
 
-        <div className="w-full flex justify-end gap-2 md:gap-3 mb-4 md:mb-6 relative z-50">
+        <div className="w-full xl:col-span-12 flex justify-end gap-2 md:gap-3 mb-2 lg:mb-4 relative z-50">
           <button 
             onClick={() => setVibrationEnabled(!vibrationEnabled)} 
             className={`p-2.5 md:p-3.5 rounded-2xl transition-all border ${isDarkMode ? 'bg-white/[0.05] border-white/[0.15] text-amber-300 hover:bg-white/[0.1] shadow-[0_4px_12px_rgba(0,0,0,0.2),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:-translate-y-0.5' : 'bg-white/80 border-white text-slate-500 hover:text-slate-800 shadow-[0_2px_10px_rgba(0,0,0,0.05)] hover:bg-white hover:-translate-y-0.5'} backdrop-blur-xl`}
@@ -502,17 +502,20 @@ const App: React.FC = () => {
           </button>
         </div>
 
-        <header className="text-center mb-8 md:mb-10">
-          <h1 className={`text-3xl sm:text-4xl md:text-7xl font-black mb-2 tracking-tight transition-colors duration-1000 ${theme.head}`}>ზარი რამდენ ხანშია?</h1>
-          <div className="flex flex-col items-center">
-            <p className={`${theme.sub} flex items-center justify-center gap-2 font-medium text-base md:text-lg`}>
+        <header className="text-center xl:text-left flex flex-col xl:flex-row items-center xl:items-end justify-between w-full xl:col-span-12 mb-6 md:mb-8">
+          <div>
+            <h1 className={`text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-black mb-2 tracking-tight transition-colors duration-1000 ${theme.head}`}>ზარი რამდენ ხანშია?</h1>
+          </div>
+          <div className={`mt-4 xl:mt-0 px-6 py-3 rounded-full border backdrop-blur-md ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-white/50 border-white/40'}`}>
+            <p className={`${theme.sub} flex items-center justify-center gap-2 font-bold text-sm md:text-base`}>
               <Calendar size={18} className={`transition-colors duration-1000 ${activeTheme.text}`} />
               {tbilisiTimeData.d} {MONTH_NAMES_GE[tbilisiTimeData.m - 1]} • {WEEKDAYS_GE[tbilisiTimeData.day]}, {tbilisiTimeData.hour.toString().padStart(2, '0')}:{tbilisiTimeData.minute.toString().padStart(2, '0')}
             </p>
           </div>
         </header>
 
-        <main className={`w-full max-w-2xl rounded-[2rem] md:rounded-[3rem] border p-6 md:p-14 mb-8 text-center relative overflow-hidden transition-all duration-1000 ${theme.card}`}>
+        <div className="w-full xl:col-span-7 flex flex-col gap-6 xl:gap-8">
+        <main className={`w-full rounded-[2.5rem] md:rounded-[3rem] border p-6 md:p-12 text-center relative overflow-hidden transition-all duration-1000 flex flex-col justify-center min-h-[460px] ${theme.card}`}>
           <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
           <div className={`absolute top-0 left-0 w-full h-1.5 transition-colors duration-1000 ${delayIn ? 'bg-amber-500 animate-pulse' : activeTheme.bg}`} />
           
@@ -585,8 +588,30 @@ const App: React.FC = () => {
         </div>
       </main>
 
+      <div className="hidden xl:flex flex-col gap-6 w-full">
+        <a 
+          href="https://onlineschool.emis.ge/" 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          className={`w-full p-6 lg:p-8 rounded-[2.5rem] border flex items-center justify-between group transition-all duration-700 ease-out transform active:scale-95 ${theme.card} hover:-translate-y-1 hover:shadow-2xl`}
+        >
+          <div className="flex items-center gap-5">
+             <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-500 group-hover:rotate-12 ${isDarkMode ? 'bg-white/5 border border-white/5 text-white' : activeTheme.buttonActive}`}>
+               <BookOpenCheck size={28} />
+             </div>
+             <div className="flex flex-col text-left">
+                <span className={`text-xl font-black tracking-tight ${theme.head}`}>ნიშნების ნახვა</span>
+                <span className={`text-[10px] uppercase font-black transition-colors duration-500 ${activeTheme.text}`}>ონლაინ სკოლის პორტალი</span>
+             </div>
+          </div>
+          <ExternalLink size={18} className="text-slate-400 transition-transform group-hover:scale-110" />
+        </a>
+      </div>
+      </div>
+
+      <div className="w-full xl:col-span-5 flex flex-col gap-6 xl:gap-8 xl:h-[calc(100%-2rem)]">
       {nextHolidayInfo && (
-        <div className={`w-full max-w-2xl mb-8 p-5 md:p-6 rounded-[2rem] border flex items-center justify-between transition-all duration-700 ease-out hover:-translate-y-1 hover:shadow-2xl ${theme.card}`}>
+        <div className={`w-full p-6 md:p-8 rounded-[2.5rem] border flex items-center justify-between transition-all duration-700 ease-out hover:-translate-y-1 hover:shadow-2xl ${theme.card}`}>
           <div className="flex items-center gap-3 md:gap-4">
             <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center ${isDarkMode ? 'bg-amber-500/10 text-amber-400' : 'bg-amber-100 text-amber-600'}`}>
               <PartyPopper size={20} className="md:w-6 md:h-6" />
@@ -603,11 +628,13 @@ const App: React.FC = () => {
         </div>
       )}
 
+      {/* Show strictly on mobile/tablet */}
+      <div className="xl:hidden w-full flex">
         <a 
           href="https://onlineschool.emis.ge/" 
           target="_blank" 
           rel="noopener noreferrer" 
-          className={`w-full max-w-2xl mb-12 p-6 rounded-[2rem] border flex items-center justify-between group transition-all duration-700 ease-out transform active:scale-95 ${theme.card} hover:-translate-y-1.5 hover:shadow-2xl`}
+          className={`w-full p-6 rounded-[2rem] border flex items-center justify-between group transition-all duration-700 ease-out transform active:scale-95 ${theme.card} hover:-translate-y-1.5 hover:shadow-2xl`}
         >
           <div className="flex items-center gap-5">
              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-500 group-hover:rotate-12 ${isDarkMode ? 'bg-white/5 border border-white/5 text-white' : activeTheme.buttonActive}`}>
@@ -620,14 +647,15 @@ const App: React.FC = () => {
           </div>
           <ExternalLink size={18} className="text-slate-400 transition-transform group-hover:scale-110" />
         </a>
+      </div>
 
-      <section className="w-full mb-16 max-w-2xl mx-auto">
+      <section className={`w-full flex-grow flex flex-col rounded-[2.5rem] border p-6 md:p-8 xl:min-h-0 ${theme.card}`}>
         <div className="flex flex-col items-center mb-8">
           <h2 className={`text-3xl font-black px-2 text-center ${theme.head}`}>გაკვეთილების ცხრილი</h2>
           <p className={`mt-2 ${theme.sub} font-bold opacity-70`}>10-1 კლასი</p>
         </div>
         
-        <div className="flex overflow-x-auto gap-2 mb-6 pb-2 pt-2 -mt-2 -mx-4 px-4 md:mx-0 md:px-0 snap-x">
+        <div className="flex overflow-x-auto gap-2 mb-6 pb-2 pt-2 -mx-4 px-4 md:mx-0 md:px-0 snap-x overflow-y-hidden" style={{ scrollbarWidth: 'none' }}>
           {[1, 2, 3, 4, 5].map(d => {
             const isToday = tbilisiTimeData.day === d;
             return (
@@ -688,8 +716,9 @@ const App: React.FC = () => {
           })}
         </div>
       </section>
+      </div>
 
-      <section className="w-full mb-24">
+      <section className="w-full xl:col-span-12 mb-24 mt-12 md:mt-24 max-w-7xl mx-auto">
         <div className="flex flex-col items-center mb-10">
             <h2 className={`text-3xl md:text-4xl font-black tracking-tight text-center ${theme.head}`}>2026 წლის უქმე დღეები</h2>
             <p className={`mt-2 ${theme.sub} font-bold opacity-70 text-sm md:text-base`}>არდადეგები და სახელმწიფო დასვენებები</p>
@@ -744,7 +773,7 @@ const App: React.FC = () => {
         </div>
       </section>
 
-      <footer className="text-center py-20 border-t w-full border-slate-200/10 relative z-10">
+      <footer className="text-center py-20 border-t w-full xl:col-span-12 border-slate-200/10 relative z-10">
         <p className="text-[11px] font-black tracking-[0.6em] mb-2 opacity-40">DESIGNED BY SMILE B</p>
         <p className="text-[10px] font-bold opacity-30 uppercase tracking-widest">© 2026. 10-1 კლასის სასკოლო პორტალი</p>
       </footer>
