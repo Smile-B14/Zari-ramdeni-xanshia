@@ -149,7 +149,7 @@ const App: React.FC = () => {
     return { day: tbilisiNow.getDay(), m: parseInt(month), d: parseInt(date), hour, minute, second, year, raw: tbilisiNow };
   }, [now]);
 
-  const { status, nextBellIn, delayIn, currentPeriod, nextEventLabel, nextSchoolDay, showTimer } = useMemo(() => {
+  const { status, nextBellIn, delayIn, currentPeriod, nextEventLabel, nextSchoolDay, showTimer, totalDuration } = useMemo(() => {
     const { day, m, d, hour, minute, second, raw } = tbilisiTimeData;
     const isHoliday = checkIsHoliday(m, d);
     
@@ -190,6 +190,7 @@ const App: React.FC = () => {
         status: (day === 0 || day === 6 || isHoliday) ? BellStatus.WEEKEND : BellStatus.AFTER_SCHOOL, 
         nextBellIn: null, // User requested no timer after school/on weekends
         delayIn: null, 
+        totalDuration: null,
         currentPeriod: 0, 
         nextEventLabel: label,
         nextSchoolDay: nextInfo.day,
@@ -203,6 +204,7 @@ const App: React.FC = () => {
         status: BellStatus.BEFORE_SCHOOL, 
         nextBellIn: startOfDaySecs - currentTimeInSeconds, 
         delayIn: null, 
+        totalDuration: startOfDaySecs,
         currentPeriod: 0, 
         nextEventLabel: 'გაკვეთილების დაწყებამდე',
         showTimer: true 
@@ -218,28 +220,31 @@ const App: React.FC = () => {
       const eSecs = e[0] * 3600 + e[1] * 60;
       
       if (currentTimeInSeconds >= sSecs && currentTimeInSeconds < eSecs) {
-        return { status: BellStatus.LESSON, nextBellIn: eSecs - currentTimeInSeconds, delayIn: null, currentPeriod: i + 1, nextEventLabel: 'გაკვეთილის დასრულებამდე', showTimer: true };
+        return { status: BellStatus.LESSON, nextBellIn: eSecs - currentTimeInSeconds, delayIn: null, totalDuration: eSecs - sSecs, currentPeriod: i + 1, nextEventLabel: 'გაკვეთილის დასრულებამდე', showTimer: true };
       }
       if (currentTimeInSeconds >= eSecs && currentTimeInSeconds < eSecs + BELL_DELAY_SECONDS) {
-        return { status: BellStatus.LESSON, nextBellIn: 0, delayIn: (eSecs + BELL_DELAY_SECONDS) - currentTimeInSeconds, currentPeriod: i + 1, nextEventLabel: 'ზარის მოლოდინი (დაგვიანება)', showTimer: true };
+        return { status: BellStatus.LESSON, nextBellIn: 0, delayIn: (eSecs + BELL_DELAY_SECONDS) - currentTimeInSeconds, totalDuration: BELL_DELAY_SECONDS, currentPeriod: i + 1, nextEventLabel: 'ზარის მოლოდინი (დაგვიანება)', showTimer: true };
       }
       if (i < todaySchedule.length - 1) {
         const nextStart = BELL_TIMES[i+1].start.split(':').map(Number);
         const nsSecs = nextStart[0] * 3600 + nextStart[1] * 60;
         if (currentTimeInSeconds >= eSecs + BELL_DELAY_SECONDS && currentTimeInSeconds < nsSecs) {
-           return { status: BellStatus.BREAK, nextBellIn: nsSecs - currentTimeInSeconds, delayIn: null, currentPeriod: i + 1, nextEventLabel: 'დასვენების დასრულებამდე', showTimer: true };
+           return { status: BellStatus.BREAK, nextBellIn: nsSecs - currentTimeInSeconds, delayIn: null, totalDuration: nsSecs - (eSecs + BELL_DELAY_SECONDS), currentPeriod: i + 1, nextEventLabel: 'დასვენების დასრულებამდე', showTimer: true };
         }
         if (currentTimeInSeconds >= nsSecs && currentTimeInSeconds < nsSecs + BELL_DELAY_SECONDS) {
-          return { status: BellStatus.BREAK, nextBellIn: 0, delayIn: (nsSecs + BELL_DELAY_SECONDS) - currentTimeInSeconds, currentPeriod: i + 1, nextEventLabel: 'ზარის მოლოდინი (დაწყება)', showTimer: true };
+          return { status: BellStatus.BREAK, nextBellIn: 0, delayIn: (nsSecs + BELL_DELAY_SECONDS) - currentTimeInSeconds, totalDuration: BELL_DELAY_SECONDS, currentPeriod: i + 1, nextEventLabel: 'ზარის მოლოდინი (დაწყება)', showTimer: true };
         }
       }
     }
 
-    return { status: BellStatus.AFTER_SCHOOL, nextBellIn: null, delayIn: null, currentPeriod: 0, nextEventLabel: 'დასრულდა', showTimer: false };
+    return { status: BellStatus.AFTER_SCHOOL, nextBellIn: null, delayIn: null, totalDuration: null, currentPeriod: 0, nextEventLabel: 'დასრულდა', showTimer: false };
   }, [tbilisiTimeData]);
 
-  // isLongCountdown is true if we are in a state that represents a long gap between school hours (weekend, holiday, after school, or early morning)
   const isLongCountdown = status === BellStatus.BEFORE_SCHOOL || status === BellStatus.AFTER_SCHOOL || status === BellStatus.WEEKEND;
+
+  const timerProgressPercent = (showTimer && totalDuration) 
+    ? Math.max(0, Math.min(100, (1 - ((delayIn !== null ? delayIn : (nextBellIn || 0)) / totalDuration)) * 100))
+    : 0;
 
   const lessonData = useMemo(() => {
     const isOut = status === BellStatus.AFTER_SCHOOL || status === BellStatus.WEEKEND;
@@ -516,8 +521,20 @@ const App: React.FC = () => {
 
         <div className="w-full xl:col-span-7 flex flex-col gap-6 xl:gap-8">
         <main className={`w-full rounded-[2.5rem] md:rounded-[3rem] border p-6 md:p-12 text-center relative overflow-hidden transition-all duration-1000 flex flex-col justify-center min-h-[460px] ${theme.card}`}>
+          {totalDuration && showTimer && (
+            <div 
+              className="absolute inset-0 pointer-events-none rounded-[inherit] z-0 transition-opacity duration-1000"
+              style={{
+                padding: '4px',
+                background: `conic-gradient(from 0deg, ${delayIn !== null ? '#f59e0b' : ({blue: '#3b82f6', emerald: '#10b981', amber: '#f59e0b', slate: '#64748b'}[activeColor] || '#3b82f6')} ${timerProgressPercent}%, transparent ${timerProgressPercent}%)`,
+                WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+                WebkitMaskComposite: 'xor',
+                maskComposite: 'exclude',
+                opacity: 0.8,
+              }}
+            />
+          )}
           <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
-          <div className={`absolute top-0 left-0 w-full h-1.5 transition-colors duration-1000 ${delayIn ? 'bg-amber-500 animate-pulse' : activeTheme.bg}`} />
           
           <div className="flex flex-col items-center relative z-10">
             <span className={`px-4 py-1.5 md:px-5 md:py-2 rounded-full text-[9px] md:text-[10px] font-black mb-6 md:mb-8 flex items-center gap-2 uppercase tracking-[0.2em] transition-colors duration-1000 ${activeTheme.badge}`}>
