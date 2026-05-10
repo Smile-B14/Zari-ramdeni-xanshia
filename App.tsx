@@ -149,9 +149,15 @@ const App: React.FC = () => {
     return { day: tbilisiNow.getDay(), m: parseInt(month), d: parseInt(date), hour, minute, second, year, raw: tbilisiNow };
   }, [now]);
 
-  const { status, nextBellIn, delayIn, currentPeriod, nextEventLabel, nextSchoolDay, showTimer, totalDuration } = useMemo(() => {
+  const { status, nextBellIn, delayIn, currentPeriod, nextEventLabel, nextSchoolDay, showTimer, totalDuration, holidayNameToday } = useMemo(() => {
     const { day, m, d, hour, minute, second, raw } = tbilisiTimeData;
     const isHoliday = checkIsHoliday(m, d);
+    let holidayNameToday = null;
+    if (isHoliday) {
+      holidayNameToday = getHolidayName(m, d);
+    } else if (day === 0 || day === 6) {
+      holidayNameToday = "შაბათ-კვირა";
+    }
     
     const getNextSchoolStartTime = () => {
       let nextDate = new Date(raw);
@@ -194,7 +200,8 @@ const App: React.FC = () => {
         currentPeriod: 0, 
         nextEventLabel: label,
         nextSchoolDay: nextInfo.day,
-        showTimer: false
+        showTimer: false,
+        holidayNameToday
       };
     }
 
@@ -207,7 +214,8 @@ const App: React.FC = () => {
         totalDuration: startOfDaySecs,
         currentPeriod: 0, 
         nextEventLabel: 'გაკვეთილების დაწყებამდე',
-        showTimer: true 
+        showTimer: true,
+        holidayNameToday
       };
     }
 
@@ -220,24 +228,24 @@ const App: React.FC = () => {
       const eSecs = e[0] * 3600 + e[1] * 60;
       
       if (currentTimeInSeconds >= sSecs && currentTimeInSeconds < eSecs) {
-        return { status: BellStatus.LESSON, nextBellIn: eSecs - currentTimeInSeconds, delayIn: null, totalDuration: eSecs - sSecs, currentPeriod: i + 1, nextEventLabel: 'გაკვეთილის დასრულებამდე', showTimer: true };
+        return { status: BellStatus.LESSON, nextBellIn: eSecs - currentTimeInSeconds, delayIn: null, totalDuration: eSecs - sSecs, currentPeriod: i + 1, nextEventLabel: 'გაკვეთილის დასრულებამდე', showTimer: true, holidayNameToday };
       }
       if (currentTimeInSeconds >= eSecs && currentTimeInSeconds < eSecs + BELL_DELAY_SECONDS) {
-        return { status: BellStatus.LESSON, nextBellIn: 0, delayIn: (eSecs + BELL_DELAY_SECONDS) - currentTimeInSeconds, totalDuration: BELL_DELAY_SECONDS, currentPeriod: i + 1, nextEventLabel: 'ზარის მოლოდინი (დაგვიანება)', showTimer: true };
+        return { status: BellStatus.LESSON, nextBellIn: 0, delayIn: (eSecs + BELL_DELAY_SECONDS) - currentTimeInSeconds, totalDuration: BELL_DELAY_SECONDS, currentPeriod: i + 1, nextEventLabel: 'ზარის მოლოდინი (დაგვიანება)', showTimer: true, holidayNameToday };
       }
       if (i < todaySchedule.length - 1) {
         const nextStart = BELL_TIMES[i+1].start.split(':').map(Number);
         const nsSecs = nextStart[0] * 3600 + nextStart[1] * 60;
         if (currentTimeInSeconds >= eSecs + BELL_DELAY_SECONDS && currentTimeInSeconds < nsSecs) {
-           return { status: BellStatus.BREAK, nextBellIn: nsSecs - currentTimeInSeconds, delayIn: null, totalDuration: nsSecs - (eSecs + BELL_DELAY_SECONDS), currentPeriod: i + 1, nextEventLabel: 'დასვენების დასრულებამდე', showTimer: true };
+           return { status: BellStatus.BREAK, nextBellIn: nsSecs - currentTimeInSeconds, delayIn: null, totalDuration: nsSecs - (eSecs + BELL_DELAY_SECONDS), currentPeriod: i + 1, nextEventLabel: 'დასვენების დასრულებამდე', showTimer: true, holidayNameToday };
         }
         if (currentTimeInSeconds >= nsSecs && currentTimeInSeconds < nsSecs + BELL_DELAY_SECONDS) {
-          return { status: BellStatus.BREAK, nextBellIn: 0, delayIn: (nsSecs + BELL_DELAY_SECONDS) - currentTimeInSeconds, totalDuration: BELL_DELAY_SECONDS, currentPeriod: i + 1, nextEventLabel: 'ზარის მოლოდინი (დაწყება)', showTimer: true };
+          return { status: BellStatus.BREAK, nextBellIn: 0, delayIn: (nsSecs + BELL_DELAY_SECONDS) - currentTimeInSeconds, totalDuration: BELL_DELAY_SECONDS, currentPeriod: i + 1, nextEventLabel: 'ზარის მოლოდინი (დაწყება)', showTimer: true, holidayNameToday };
         }
       }
     }
 
-    return { status: BellStatus.AFTER_SCHOOL, nextBellIn: null, delayIn: null, totalDuration: null, currentPeriod: 0, nextEventLabel: 'დასრულდა', showTimer: false };
+    return { status: BellStatus.AFTER_SCHOOL, nextBellIn: null, delayIn: null, totalDuration: null, currentPeriod: 0, nextEventLabel: 'დასრულდა', showTimer: false, holidayNameToday };
   }, [tbilisiTimeData]);
 
   const isLongCountdown = status === BellStatus.BEFORE_SCHOOL || status === BellStatus.AFTER_SCHOOL || status === BellStatus.WEEKEND;
@@ -545,6 +553,18 @@ const App: React.FC = () => {
             {showTimer ? (
               <div className={`text-4xl sm:text-6xl md:text-[9rem] font-black tabular-nums tracking-tighter leading-none ${theme.head}`}>
                 {delayIn !== null ? formatTimeRemaining(delayIn) : formatTimeRemaining(nextBellIn)}
+              </div>
+            ) : status === BellStatus.WEEKEND ? (
+              <div className="flex flex-col items-center justify-center py-6 md:py-10">
+                <div className={`text-3xl sm:text-4xl md:text-6xl font-black mb-4 tracking-tight ${theme.head}`}>
+                  დღეს დასვენებაა!
+                </div>
+                {holidayNameToday && (
+                  <div className={`px-5 py-2 rounded-2xl text-sm md:text-base font-bold flex items-center justify-center gap-2 max-w-[80%] mx-auto text-center ${isDarkMode ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]' : 'bg-amber-100 text-amber-800 border border-amber-200 shadow-sm'}`}>
+                    <PartyPopper size={18} className="shrink-0" /> 
+                    <span>{holidayNameToday}</span>
+                  </div>
+                )}
               </div>
             ) : (
               <div className={`text-2xl sm:text-3xl md:text-5xl font-black py-6 md:py-10 opacity-30 ${theme.head}`}>
