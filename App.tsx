@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { BELL_TIMES, HOLIDAYS_2026, LESSON_SCHEDULE, WEEKDAYS_GE, HOLIDAY_NAMES_GE, HOLIDAY_RANGES } from './constants';
 import { BellStatus } from './types';
 
-const BELL_DELAY_SECONDS = 70; 
+const BELL_DELAY_SECONDS = 71; 
 const MONTH_NAMES_GE = [
   "იანვარი", "თებერვალი", "მარტი", "აპრილი", "მაისი", "ივნისი",
   "ივლისი", "აგვისტო", "სექტემბერი", "ოქტომბერი", "ნოემბერი", "დეკემბერი"
@@ -105,6 +105,8 @@ const getColorConfig = (color: string, isDark: boolean) => {
   return map[color];
 };
 
+const tzFormatter = new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Tbilisi', hour12: false, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
 const App: React.FC = () => {
   const [now, setNow] = useState(new Date());
   const [isDarkMode, setIsDarkMode] = useState(true);
@@ -131,13 +133,17 @@ const App: React.FC = () => {
   }, [vibrationEnabled]);
 
   useEffect(() => {
-    const timer = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(timer);
+    let animationFrameId: number;
+    const update = () => {
+      setNow(new Date());
+      animationFrameId = requestAnimationFrame(update);
+    };
+    animationFrameId = requestAnimationFrame(update);
+    return () => cancelAnimationFrame(animationFrameId);
   }, []);
 
   const tbilisiTimeData = useMemo(() => {
-    const formatter = new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Tbilisi', hour12: false, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    const parts = formatter.formatToParts(now);
+    const parts = tzFormatter.formatToParts(now);
     const getPart = (type: string) => parts.find(p => p.type === type)?.value || '';
     const year = parseInt(getPart('year'));
     const month = getPart('month');
@@ -163,8 +169,10 @@ const App: React.FC = () => {
       let nextDate = new Date(raw);
       nextDate.setHours(8, 30, 0, 0);
       let found = false;
+      let daysAdded = 0;
       while (!found) {
         nextDate.setDate(nextDate.getDate() + 1);
+        daysAdded++;
         const nm = nextDate.getMonth() + 1;
         const nd = nextDate.getDate();
         const nDay = nextDate.getDay();
@@ -172,10 +180,10 @@ const App: React.FC = () => {
           found = true;
         }
       }
-      return { time: nextDate, day: nextDate.getDay() };
+      return { time: nextDate, day: nextDate.getDay(), daysAdded };
     };
 
-    const currentTimeInSeconds = hour * 3600 + minute * 60 + second;
+    const currentTimeInSeconds = hour * 3600 + minute * 60 + second + raw.getMilliseconds() / 1000;
     const firstStart = BELL_TIMES[0].start.split(':').map(Number);
     const startOfDaySecs = firstStart[0] * 3600 + firstStart[1] * 60;
     
@@ -189,8 +197,12 @@ const App: React.FC = () => {
     if (day === 0 || day === 6 || isHoliday || currentTimeInSeconds > endOfDaySecs + BELL_DELAY_SECONDS) {
       const nextInfo = getNextSchoolStartTime();
       let label = 'სკოლის დაწყებამდე';
-      if (day === 5 || day === 6 || day === 0) label = 'ორშაბათამდე';
-      else label = 'ხვალამდე';
+      if (nextInfo.daysAdded === 1) {
+        label = 'ხვალამდე';
+      } else {
+        const names = ["კვირამდე", "ორშაბათამდე", "სამშაბათამდე", "ოთხშაბათამდე", "ხუთშაბათამდე", "პარასკევამდე", "შაბათამდე"];
+        label = names[nextInfo.day];
+      }
 
       return { 
         status: (day === 0 || day === 6 || isHoliday) ? BellStatus.WEEKEND : BellStatus.AFTER_SCHOOL, 
