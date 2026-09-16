@@ -3,8 +3,8 @@ import { BellTime, DailySchedule } from './types';
 export const BELL_TIMES: BellTime[] = [
   { period: 1, start: '08:30', end: '09:10' },
   { period: 2, start: '09:15', end: '09:55' },
-  { period: 3, start: '10:05', end: '10:45' },
-  { period: 4, start: '10:55', end: '11:35' },
+  { period: 3, start: '10:00', end: '10:40' },
+  { period: 4, start: '10:50', end: '11:30' },
   { period: 5, start: '11:40', end: '12:20' },
   { period: 6, start: '12:25', end: '13:05' },
   { period: 7, start: '13:10', end: '13:50' },
@@ -39,7 +39,7 @@ export const LESSON_SCHEDULE: DailySchedule = {
     { subject: 'ბიოლოგია', teacher: 'ნიკოლაიშვილი' },
     { subject: 'პროექტი მუსიკა', teacher: 'ჯაში' },
     { subject: 'ქართული ენა', teacher: 'მდივანი' },
-    { subject: 'გეოგრაფია', teacher: 'ნიკურაძე' },
+    { subject: 'პროექტი - გეოგრაფია', teacher: 'ნიკურაძე' },
     { subject: 'ინგლისური', teacher: 'ბექანიშვილი' },
   ],
   5: [ // პარასკევი (5 გაკვეთილი)
