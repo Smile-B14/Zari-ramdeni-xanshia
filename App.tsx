@@ -11,7 +11,7 @@ import {
 } from './constants';
 import { BellStatus } from './types';
 
-const BELL_DELAY_SECONDS = 5; 
+const BELL_DELAY_SECONDS = 80; // 1 min 20 sec 
 const MONTH_NAMES_GE = [
   "იანვარი", "თებერვალი", "მარტი", "აპრილი", "მაისი", "ივნისი",
   "ივლისი", "აგვისტო", "სექტემბერი", "ოქტომბერი", "ნოემბერი", "დეკემბერი"
