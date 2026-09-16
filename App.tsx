@@ -715,14 +715,6 @@ const App: React.FC = () => {
               {tbilisiTimeData.d} {MONTH_NAMES_GE[tbilisiTimeData.m - 1]} • {WEEKDAYS_GE[tbilisiTimeData.day]}, {tbilisiTimeData.hour.toString().padStart(2, '0')}:{tbilisiTimeData.minute.toString().padStart(2, '0')}
             </span>
           </div>
-
-          {/* Current Lesson Time Indicator below current time */}
-          {activeLessonTimeInfo && (
-            <div className={`px-4 py-1.5 rounded-full border backdrop-blur-xl flex items-center gap-2 text-xs sm:text-sm font-bold transition-all shadow-sm ${activeTheme.badge}`}>
-              <Clock size={14} className={activeTheme.text} />
-              <span>{activeLessonTimeInfo.label}: <strong className="font-black">{activeLessonTimeInfo.range}</strong></span>
-            </div>
-          )}
         </header>
 
         {/* Main Countdown Column (Left on desktop) */}
