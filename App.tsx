@@ -434,6 +434,49 @@ const App: React.FC = () => {
     return null;
   }, [tbilisiTimeData, status, currentPeriod, nextSchoolDay]);
 
+  // Quick current / active lesson time indicator (e.g. 08:30 – 09:10)
+  const activeLessonTimeInfo = useMemo(() => {
+    if (status === BellStatus.WEEKEND) return null;
+
+    if (status === BellStatus.LESSON && currentPeriod >= 1 && currentPeriod <= BELL_TIMES.length) {
+      const b = BELL_TIMES[currentPeriod - 1];
+      return {
+        range: `${b.start} – ${b.end}`,
+        label: `${currentPeriod}-ლი გაკვეთილი`,
+        period: currentPeriod
+      };
+    }
+
+    if (status === BellStatus.BREAK && currentPeriod >= 1 && currentPeriod < BELL_TIMES.length) {
+      const nextB = BELL_TIMES[currentPeriod];
+      return {
+        range: `${nextB.start} – ${nextB.end}`,
+        label: `შემდეგი გაკვეთილი`,
+        period: currentPeriod + 1
+      };
+    }
+
+    if (status === BellStatus.BEFORE_SCHOOL) {
+      const b = BELL_TIMES[0];
+      return {
+        range: `${b.start} – ${b.end}`,
+        label: `1-ლი გაკვეთილი`,
+        period: 1
+      };
+    }
+
+    if (status === BellStatus.AFTER_SCHOOL) {
+      const b = BELL_TIMES[0];
+      return {
+        range: `${b.start} – ${b.end}`,
+        label: `1-ლი გაკვეთილი`,
+        period: 1
+      };
+    }
+
+    return null;
+  }, [status, currentPeriod]);
+
   // Process and rank holidays for 2026-2027
   const { holidayStatusByDay, nextHolidayInfo, processedHolidays } = useMemo(() => {
     const { raw } = tbilisiTimeData;
@@ -661,7 +704,7 @@ const App: React.FC = () => {
         </div>
 
         {/* Centered Hero Section Header */}
-        <header className="xl:col-span-12 flex flex-col items-center justify-center text-center gap-3 mt-1">
+        <header className="xl:col-span-12 flex flex-col items-center justify-center text-center gap-2.5 mt-1">
           <h1 className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tight text-center ${theme.head}`}>
             ზარი რამდენ ხანშია?
           </h1>
@@ -672,6 +715,14 @@ const App: React.FC = () => {
               {tbilisiTimeData.d} {MONTH_NAMES_GE[tbilisiTimeData.m - 1]} • {WEEKDAYS_GE[tbilisiTimeData.day]}, {tbilisiTimeData.hour.toString().padStart(2, '0')}:{tbilisiTimeData.minute.toString().padStart(2, '0')}
             </span>
           </div>
+
+          {/* Current Lesson Time Indicator below current time */}
+          {activeLessonTimeInfo && (
+            <div className={`px-4 py-1.5 rounded-full border backdrop-blur-xl flex items-center gap-2 text-xs sm:text-sm font-bold transition-all shadow-sm ${activeTheme.badge}`}>
+              <Clock size={14} className={activeTheme.text} />
+              <span>{activeLessonTimeInfo.label}: <strong className="font-black">{activeLessonTimeInfo.range}</strong></span>
+            </div>
+          )}
         </header>
 
         {/* Main Countdown Column (Left on desktop) */}
@@ -747,11 +798,19 @@ const App: React.FC = () => {
               </div>
             
               {/* Central Big Countdown */}
-              <div className="mb-6 md:mb-8 w-full">
+              <div className="mb-6 md:mb-8 w-full flex flex-col items-center">
                 {showTimer ? (
-                  <div className={`text-5xl sm:text-6xl md:text-7xl lg:text-[8.5rem] font-black tabular-nums tracking-tighter leading-none ${theme.head}`}>
-                    {delayIn !== null ? formatTimeRemaining(delayIn) : formatTimeRemaining(nextBellIn)}
-                  </div>
+                  <>
+                    <div className={`text-5xl sm:text-6xl md:text-7xl lg:text-[8.5rem] font-black tabular-nums tracking-tighter leading-none ${theme.head}`}>
+                      {delayIn !== null ? formatTimeRemaining(delayIn) : formatTimeRemaining(nextBellIn)}
+                    </div>
+                    {activeLessonTimeInfo && (
+                      <div className={`mt-3.5 inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs sm:text-sm font-black border backdrop-blur-xl transition-all shadow-sm ${activeTheme.badge}`}>
+                        <Clock size={14} className={activeTheme.text} />
+                        <span>{activeLessonTimeInfo.range}</span>
+                      </div>
+                    )}
+                  </>
                 ) : status === BellStatus.WEEKEND ? (
                   <div className="flex flex-col items-center justify-center py-4 md:py-8">
                     <div className={`text-3xl sm:text-4xl md:text-6xl font-black mb-3 tracking-tight ${theme.head}`}>
@@ -805,6 +864,12 @@ const App: React.FC = () => {
                         <span className={`text-[11px] uppercase font-black tracking-widest ${status === BellStatus.BREAK || !showTimer ? activeTheme.text : 'text-slate-400'}`}>
                           {lessonData.current.label}
                         </span>
+                        {activeLessonTimeInfo && (
+                          <span className={`text-[11px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 ${isDarkMode ? 'bg-white/10 text-slate-200' : 'bg-black/5 text-slate-700'}`}>
+                            <Clock size={11} className="opacity-70" />
+                            {activeLessonTimeInfo.range}
+                          </span>
+                        )}
                       </div>
                       
                       <h3 className={`text-2xl sm:text-3xl font-black tracking-tight relative z-10 ${theme.head}`}>
