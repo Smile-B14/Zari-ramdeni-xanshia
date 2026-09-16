@@ -23,7 +23,7 @@ export const LESSON_SCHEDULE: DailySchedule = {
     { subject: 'ინგლისური', teacher: 'ბექანიშვილი' },
     { subject: 'ქართული ენა', teacher: 'მდივანი' },
     { subject: 'მათემატიკა', teacher: 'ხუციშვილი' },
-    { subject: 'ფიზიკა', teacher: 'დვალიშვილი' },
+    { subject: 'ფიზიკა', teacher: 'დვალი' },
     { subject: 'ქიმია', teacher: 'ბაღდავაძე' },
     { subject: 'ისტორია', teacher: 'ღონღაძე' },
   ],
