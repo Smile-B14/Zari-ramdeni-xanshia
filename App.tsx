@@ -720,8 +720,14 @@ const App: React.FC = () => {
         {/* Main Countdown Column (Left on desktop) */}
         <div className="w-full xl:col-span-7 flex flex-col gap-6">
           
-          <main className={`w-full rounded-[2.5rem] md:rounded-[3rem] p-6 sm:p-8 md:p-12 text-center relative overflow-hidden transition-all duration-500 flex flex-col justify-center min-h-[460px] ${theme.card}`}>
+          <main className={`w-full rounded-3xl sm:rounded-[2.5rem] lg:rounded-[3rem] p-5 sm:p-7 md:p-10 lg:p-12 text-center relative overflow-hidden transition-all duration-500 flex flex-col justify-between min-h-[440px] sm:min-h-[480px] ${theme.card}`}>
             
+            {/* Ambient background glow accent */}
+            <div 
+              className="absolute -top-24 left-1/2 -translate-x-1/2 w-64 sm:w-96 h-64 sm:h-96 rounded-full blur-3xl opacity-15 sm:opacity-20 pointer-events-none transition-all duration-700"
+              style={{ backgroundColor: activeTheme.hexColor }}
+            />
+
             {/* Buttery smooth hardware-accelerated progress ring around card */}
             {totalDuration && showTimer && (
               <svg 
@@ -744,7 +750,7 @@ const App: React.FC = () => {
                   y="3" 
                   width="calc(100% - 6px)" 
                   height="calc(100% - 6px)" 
-                  rx="44" 
+                  rx="36" 
                   fill="none" 
                   stroke={isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.04)'} 
                   strokeWidth="3.5" 
@@ -756,7 +762,7 @@ const App: React.FC = () => {
                   y="3" 
                   width="calc(100% - 6px)" 
                   height="calc(100% - 6px)" 
-                  rx="44" 
+                  rx="36" 
                   fill="none" 
                   stroke="url(#ring-glow-gradient)" 
                   strokeWidth="3.5" 
@@ -775,31 +781,65 @@ const App: React.FC = () => {
             {/* Specular glass reflection */}
             <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-white/[0.08] to-transparent pointer-events-none" />
             
-            <div className="flex flex-col items-center relative z-10">
+            <div className="flex flex-col items-center justify-between w-full h-full relative z-10 my-auto">
               
-              {/* Event status pill */}
-              <div className={`px-4 py-1.5 md:px-5 md:py-2 rounded-full text-[10px] md:text-xs font-black mb-6 md:mb-8 flex items-center gap-2 uppercase tracking-[0.18em] transition-all ${activeTheme.badge}`}>
-                {status === BellStatus.LESSON ? (
-                  <GraduationCap size={15} />
-                ) : status === BellStatus.BREAK ? (
-                  <Coffee size={15} />
-                ) : (
-                  <Flag size={15} />
+              {/* Top Header Row within Card: Status Pill & Time Range */}
+              <div className="w-full flex items-center justify-between gap-2 mb-4 sm:mb-6">
+                <div className={`px-3.5 sm:px-4 py-1.5 rounded-full text-[10px] sm:text-xs font-black flex items-center gap-2 uppercase tracking-[0.14em] transition-all shadow-sm ${activeTheme.badge}`}>
+                  <span className={`w-2 h-2 rounded-full ${activeTheme.bg} animate-pulse`} />
+                  {status === BellStatus.LESSON ? (
+                    <GraduationCap size={14} className="shrink-0" />
+                  ) : status === BellStatus.BREAK ? (
+                    <Coffee size={14} className="shrink-0" />
+                  ) : (
+                    <Flag size={14} className="shrink-0" />
+                  )}
+                  <span className="truncate">{nextEventLabel}</span>
+                </div>
+
+                {activeLessonTimeInfo && (
+                  <div className={`hidden sm:inline-flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-full text-xs font-bold border backdrop-blur-md transition-all shadow-sm ${isDarkMode ? 'bg-white/[0.04] border-white/[0.08] text-slate-300' : 'bg-white/80 border-slate-200/80 text-slate-700'}`}>
+                    <Clock size={13} className={activeTheme.text} />
+                    <span>{activeLessonTimeInfo.range}</span>
+                  </div>
                 )}
-                <span>{nextEventLabel}</span>
               </div>
             
-              {/* Central Big Countdown */}
-              <div className="mb-6 md:mb-8 w-full flex flex-col items-center">
+              {/* Central Hero Countdown */}
+              <div className="w-full flex flex-col items-center justify-center my-3 sm:my-6">
                 {showTimer ? (
                   <>
-                    <div className={`text-5xl sm:text-6xl md:text-7xl lg:text-[8.5rem] font-black tabular-nums tracking-tighter leading-none ${theme.head}`}>
+                    <div className={`text-[3.25rem] xs:text-[4.2rem] sm:text-6xl md:text-7xl lg:text-[7.5rem] xl:text-[8.25rem] font-black tabular-nums tracking-tighter leading-none select-none drop-shadow-sm ${theme.head}`}>
                       {delayIn !== null ? formatTimeRemaining(delayIn) : formatTimeRemaining(nextBellIn)}
                     </div>
+                    
+                    {/* Time indicator pill visible on smaller screens */}
                     {activeLessonTimeInfo && (
-                      <div className={`mt-3.5 inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs sm:text-sm font-black border backdrop-blur-xl transition-all shadow-sm ${activeTheme.badge}`}>
-                        <Clock size={14} className={activeTheme.text} />
+                      <div className={`sm:hidden mt-3 inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold border backdrop-blur-md transition-all shadow-sm ${isDarkMode ? 'bg-white/[0.04] border-white/[0.08] text-slate-300' : 'bg-white/80 border-slate-200/80 text-slate-700'}`}>
+                        <Clock size={12} className={activeTheme.text} />
                         <span>{activeLessonTimeInfo.range}</span>
+                      </div>
+                    )}
+
+                    {/* Modern sleek progress bar */}
+                    {totalDuration && (
+                      <div className="w-full max-w-sm sm:max-w-md mt-5 sm:mt-7 flex flex-col gap-2">
+                        <div className="h-2 sm:h-2.5 w-full bg-slate-200/60 dark:bg-white/[0.06] rounded-full overflow-hidden p-0.5 backdrop-blur-sm border border-black/5 dark:border-white/5">
+                          <div 
+                            className={`h-full rounded-full transition-all duration-1000 ease-out ${activeTheme.bg}`}
+                            style={{ 
+                              width: `${Math.min(100, Math.max(0, timerProgressPercent))}%`,
+                              boxShadow: `0 0 12px ${activeTheme.glowColor}`
+                            }}
+                          />
+                        </div>
+                        <div className="flex items-center justify-between text-[11px] font-bold text-slate-400 dark:text-slate-400 px-1">
+                          <span>დარჩენილია {Math.max(0, Math.round(100 - timerProgressPercent))}%</span>
+                          <span className="flex items-center gap-1">
+                            <Clock size={11} className="opacity-60" />
+                            {delayIn !== null ? 'დაყოვნება (+1:20)' : 'ზარამდე'}
+                          </span>
+                        </div>
                       </div>
                     )}
                   </>
@@ -822,13 +862,13 @@ const App: React.FC = () => {
                 )}
               </div>
             
-              {/* Lesson Context or Tomorrow Off Banner */}
+              {/* Lesson Context: Flat, sleek & modern glass styling */}
               {lessonData && (
-                <div className="w-full flex flex-col gap-3.5 max-w-lg mx-auto">
+                <div className="w-full max-w-xl mx-auto mt-4 sm:mt-6 flex flex-col gap-3">
                   
                   {/* If Tomorrow is Holiday / Off */}
                   {lessonData.isTomorrowOff ? (
-                    <div className={`w-full rounded-[2.2rem] p-6 sm:p-7 flex flex-col items-center border relative overflow-hidden transition-all ${isDarkMode ? 'bg-amber-500/10 border-amber-500/20 text-amber-200' : 'bg-amber-50/80 border-amber-200 text-amber-900'}`}>
+                    <div className={`w-full rounded-2xl sm:rounded-3xl p-5 sm:p-6 flex flex-col items-center border relative overflow-hidden transition-all ${isDarkMode ? 'bg-amber-500/10 border-amber-500/20 text-amber-200' : 'bg-amber-50/80 border-amber-200 text-amber-900'}`}>
                       <div className="flex items-center gap-2 mb-2">
                         <PartyPopper size={18} className="text-amber-400 shrink-0" />
                         <span className="text-xs uppercase font-black tracking-widest text-amber-400">
@@ -847,65 +887,54 @@ const App: React.FC = () => {
                     </div>
                   ) : lessonData.current ? (
                     /* Regular Active or Upcoming Lesson */
-                    <div className={`w-full rounded-[2.2rem] p-6 sm:p-7 flex flex-col items-center border relative overflow-hidden transition-all ${theme.muted}`}>
+                    <div className={`w-full rounded-2xl sm:rounded-3xl p-4 sm:p-5 border transition-all text-left backdrop-blur-md ${isDarkMode ? 'bg-white/[0.025] border-white/[0.08]' : 'bg-white/70 border-white/80 shadow-sm'}`}>
                       
-                      <div className="flex items-center gap-2.5 mb-2 relative z-10">
-                        <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-[11px] font-black shadow-inner ${isDarkMode ? `${activeTheme.bgSubtle} ${activeTheme.text} border ${activeTheme.border}` : activeTheme.buttonActive}`}>
-                          {lessonData.current.num}
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-2xl flex items-center justify-center text-sm font-black shrink-0 ${isDarkMode ? `${activeTheme.bgSubtle} ${activeTheme.text} border ${activeTheme.border}` : activeTheme.buttonActive}`}>
+                            {lessonData.current.num}
+                          </div>
+                          <div className="flex flex-col min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className={`text-[10px] sm:text-[11px] uppercase font-black tracking-widest truncate ${status === BellStatus.BREAK || !showTimer ? activeTheme.text : 'text-slate-400'}`}>
+                                {lessonData.current.label}
+                              </span>
+                              {lessonData.current.isLast && !isLongCountdown && (
+                                <span className="px-2 py-0.5 bg-amber-500/15 text-amber-500 dark:text-amber-300 border border-amber-500/25 text-[9px] font-black rounded-full uppercase tracking-wider shrink-0">
+                                  ბოლო 🏁
+                                </span>
+                              )}
+                            </div>
+                            <h3 className={`text-lg sm:text-xl md:text-2xl font-black tracking-tight truncate ${theme.head}`}>
+                              {lessonData.current.lesson.subject}
+                            </h3>
+                          </div>
                         </div>
-                        <span className={`text-[11px] uppercase font-black tracking-widest ${status === BellStatus.BREAK || !showTimer ? activeTheme.text : 'text-slate-400'}`}>
-                          {lessonData.current.label}
-                        </span>
-                        {activeLessonTimeInfo && (
-                          <span className={`text-[11px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 ${isDarkMode ? 'bg-white/10 text-slate-200' : 'bg-black/5 text-slate-700'}`}>
-                            <Clock size={11} className="opacity-70" />
-                            {activeLessonTimeInfo.range}
-                          </span>
+
+                        {lessonData.current.lesson.teacher && (
+                          <div className={`px-3 py-1.5 rounded-xl border text-xs font-bold shrink-0 self-start sm:self-center ${isDarkMode ? 'bg-white/[0.03] border-white/[0.06] text-slate-300' : 'bg-white border-slate-200/60 text-slate-700 shadow-sm'}`}>
+                            {lessonData.current.lesson.teacher}
+                          </div>
                         )}
                       </div>
-                      
-                      <h3 className={`text-2xl sm:text-3xl font-black tracking-tight relative z-10 ${theme.head}`}>
-                        {lessonData.current.lesson.subject}
-                      </h3>
-                      {lessonData.current.lesson.teacher && (
-                        <p className={`${theme.sub} font-bold text-sm sm:text-base mt-1 relative z-10`}>
-                          მასწავლებელი: {lessonData.current.lesson.teacher}
-                        </p>
-                      )}
-                      
-                      {lessonData.current.isLast && !isLongCountdown && (
-                        <span className="mt-3 px-3 py-1 bg-amber-500 text-black text-[10px] font-black rounded-full uppercase tracking-wider relative z-10">
-                          დღის ბოლო გაკვეთილი 🏁
-                        </span>
+
+                      {/* Next Lesson Preview Sub-Row */}
+                      {!lessonData.isTomorrowOff && lessonData.next && (
+                        <div className="mt-3 pt-3 border-t border-black/5 dark:border-white/5 flex items-center justify-between gap-2 text-xs">
+                          <div className="flex items-center gap-2 min-w-0 text-slate-400">
+                            <span className={`text-[10px] font-black uppercase tracking-wider ${activeTheme.text}`}>შემდეგი:</span>
+                            <span className={`font-black truncate ${theme.head}`}>
+                              {lessonData.next.subject}
+                            </span>
+                            {lessonData.next.isNextLast && <span className="text-amber-400 text-xs shrink-0">🏁</span>}
+                          </div>
+                          <span className="font-semibold text-slate-400 text-[11px] shrink-0 truncate max-w-[140px] sm:max-w-none">
+                            {lessonData.next.teacher}
+                          </span>
+                        </div>
                       )}
                     </div>
                   ) : null}
-
-                  {/* Next Lesson Teaser Card */}
-                  {!lessonData.isTomorrowOff && lessonData.next && (
-                    <div className={`w-full rounded-[1.8rem] px-5 py-4 flex items-center justify-between border transition-all ${isDarkMode ? 'bg-white/[0.025] border-white/[0.08]' : 'bg-white/60 border-white/60 shadow-sm'}`}>
-                      <div className="flex flex-col items-start text-left">
-                        <div className="flex items-center gap-2 mb-0.5">
-                          <div className="w-5 h-5 rounded-md bg-slate-500/10 flex items-center justify-center text-[9px] font-black text-slate-400 border border-slate-500/20">
-                            {lessonData.next.num}
-                          </div>
-                          <span className={`text-[10px] uppercase font-black ${activeTheme.text} tracking-wider`}>
-                            შემდეგი
-                          </span>
-                        </div>
-                        <h4 className={`text-base sm:text-lg font-black tracking-tight ${theme.head}`}>
-                          {lessonData.next.subject}
-                        </h4>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        {lessonData.next.isNextLast && <span className="text-amber-400 text-sm">🏁</span>}
-                        <span className="text-xs font-semibold opacity-60">
-                          {lessonData.next.teacher}
-                        </span>
-                      </div>
-                    </div>
-                  )}
                 </div>
               )}
             </div>
