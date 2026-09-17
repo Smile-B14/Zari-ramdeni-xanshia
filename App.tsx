@@ -11,7 +11,7 @@ import {
 } from './constants';
 import { BellStatus } from './types';
 
-const BELL_DELAY_SECONDS = 80; // 1 min 20 sec 
+const BELL_DELAY_SECONDS = 180; // 3 min 00 sec (80s + 100s) 
 const MONTH_NAMES_GE = [
   "იანვარი", "თებერვალი", "მარტი", "აპრილი", "მაისი", "ივნისი",
   "ივლისი", "აგვისტო", "სექტემბერი", "ოქტომბერი", "ნოემბერი", "დეკემბერი"
@@ -627,6 +627,35 @@ const App: React.FC = () => {
   return (
     <div className={`min-h-screen relative overflow-x-hidden ${isDarkMode ? 'text-slate-100 selection:bg-blue-500/30' : 'text-slate-800 selection:bg-blue-500/20'}`}>
       
+      {/* Dynamic Theme-Driven Custom Scrollbar */}
+      <style>{`
+        :root {
+          --scroll-thumb-color: ${activeTheme.hexColor}99;
+          --scroll-thumb-hover: ${activeTheme.hexColor};
+        }
+        ::-webkit-scrollbar {
+          width: 7px;
+          height: 7px;
+        }
+        ::-webkit-scrollbar-track {
+          background: ${isDarkMode ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.03)'};
+        }
+        ::-webkit-scrollbar-thumb {
+          background: ${activeTheme.hexColor}99;
+          border-radius: 9999px;
+          border: 1.5px solid transparent;
+          background-clip: padding-box;
+          transition: background-color 0.4s ease;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+          background: ${activeTheme.hexColor};
+        }
+        * {
+          scrollbar-width: thin;
+          scrollbar-color: ${activeTheme.hexColor}99 transparent;
+        }
+      `}</style>
+
       {/* Hardware-accelerated glassy ambient light orbs */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
         <div 
@@ -643,12 +672,20 @@ const App: React.FC = () => {
         />
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10 grid grid-cols-1 xl:grid-cols-12 gap-6 xl:gap-8 items-start">
+      <div className="relative z-10 max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-5 md:py-8 grid grid-cols-1 xl:grid-cols-12 gap-5 sm:gap-6 xl:gap-8 items-start">
         
         {/* Top Control Bar */}
-        <div className="xl:col-span-12 flex items-center justify-end w-full">
+        <div className="xl:col-span-12 flex items-center justify-between w-full">
+          {/* Class Badge */}
+          <div className={`px-3 sm:px-4 py-1.5 rounded-2xl border backdrop-blur-xl flex items-center gap-2 text-xs font-black transition-all shadow-sm ${
+            isDarkMode ? 'bg-white/[0.04] border-white/[0.1] text-slate-200' : 'bg-white/80 border-white text-slate-700'
+          }`}>
+            <span className={`w-2 h-2 rounded-full ${activeTheme.bg} animate-pulse`} />
+            <span>11-1 კლასი</span>
+          </div>
+
           {/* Audio, Vibration, Theme Toggles */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             <button 
               onClick={() => {
                 if ('vibrate' in navigator) {
@@ -704,14 +741,14 @@ const App: React.FC = () => {
         </div>
 
         {/* Centered Hero Section Header */}
-        <header className="xl:col-span-12 flex flex-col items-center justify-center text-center gap-2.5 mt-1">
-          <h1 className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tight text-center ${theme.head}`}>
+        <header className="xl:col-span-12 flex flex-col items-center justify-center text-center gap-2 sm:gap-2.5 mt-1 mx-auto w-full">
+          <h1 className={`text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tight text-center ${theme.head}`}>
             ზარი რამდენ ხანშია?
           </h1>
 
-          <div className={`px-5 py-2 rounded-full border backdrop-blur-xl flex items-center gap-2.5 ${isDarkMode ? 'bg-white/[0.04] border-white/[0.1]' : 'bg-white/70 border-white/60 shadow-sm'}`}>
-            <Calendar size={15} className={activeTheme.text} />
-            <span className="text-xs sm:text-sm font-bold">
+          <div className={`px-4 sm:px-5 py-1.5 sm:py-2 rounded-full border backdrop-blur-xl flex items-center justify-center gap-2 shadow-sm ${isDarkMode ? 'bg-white/[0.04] border-white/[0.1]' : 'bg-white/70 border-white/60'}`}>
+            <Calendar size={14} className={`${activeTheme.text} shrink-0`} />
+            <span className="text-[11px] sm:text-xs md:text-sm font-bold text-center">
               {tbilisiTimeData.d} {MONTH_NAMES_GE[tbilisiTimeData.m - 1]} • {WEEKDAYS_GE[tbilisiTimeData.day]}, {tbilisiTimeData.hour.toString().padStart(2, '0')}:{tbilisiTimeData.minute.toString().padStart(2, '0')}
             </span>
           </div>
@@ -728,55 +765,22 @@ const App: React.FC = () => {
               style={{ backgroundColor: activeTheme.hexColor }}
             />
 
-            {/* Buttery smooth hardware-accelerated progress ring around card */}
-            {totalDuration && showTimer && (
-              <svg 
-                className="absolute inset-0 w-full h-full pointer-events-none rounded-[inherit] overflow-visible z-0"
-              >
-                <defs>
-                  <linearGradient id="ring-glow-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor={activeTheme.ringGradStart} />
-                    <stop offset="100%" stopColor={activeTheme.ringGradEnd} />
-                  </linearGradient>
-                  <filter id="smooth-glow" x="-20%" y="-20%" width="140%" height="140%">
-                    <feGaussianBlur stdDeviation="5" result="blur" />
-                    <feComposite in="SourceGraphic" in2="blur" operator="over" />
-                  </filter>
-                </defs>
-
-                {/* Background track */}
-                <rect 
-                  x="3" 
-                  y="3" 
-                  width="calc(100% - 6px)" 
-                  height="calc(100% - 6px)" 
-                  rx="36" 
-                  fill="none" 
-                  stroke={isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.04)'} 
-                  strokeWidth="3.5" 
-                />
-
-                {/* Animated active stroke */}
-                <rect 
-                  x="3" 
-                  y="3" 
-                  width="calc(100% - 6px)" 
-                  height="calc(100% - 6px)" 
-                  rx="36" 
-                  fill="none" 
-                  stroke="url(#ring-glow-gradient)" 
-                  strokeWidth="3.5" 
-                  pathLength="100" 
-                  strokeDasharray="100" 
-                  strokeDashoffset={100 - timerProgressPercent} 
-                  strokeLinecap="round" 
-                  filter="url(#smooth-glow)"
-                  style={{ 
-                    transition: 'stroke-dashoffset 1s linear, stroke 0.5s ease',
-                  }} 
-                />
-              </svg>
-            )}
+            {/* Refined multi-layered glass border with dynamic accent illumination */}
+            <div 
+              className="absolute inset-0 rounded-[inherit] border pointer-events-none transition-all duration-700" 
+              style={{ 
+                borderColor: isDarkMode ? `${activeTheme.hexColor}40` : `${activeTheme.hexColor}35`,
+                boxShadow: isDarkMode 
+                  ? `0 0 24px -6px ${activeTheme.hexColor}20, inset 0 0 24px -8px ${activeTheme.hexColor}15`
+                  : `0 8px 30px -10px ${activeTheme.hexColor}25, inset 0 0 20px -8px ${activeTheme.hexColor}10`
+              }} 
+            />
+            {/* Inner crisp optical border */}
+            <div className="absolute inset-[1px] rounded-[inherit] border border-white/30 dark:border-white/[0.08] pointer-events-none" />
+            {/* Top specular light edge */}
+            <div className="absolute inset-x-8 sm:inset-x-16 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-white/60 dark:via-white/30 to-transparent pointer-events-none" />
+            {/* Bottom soft ambient boundary */}
+            <div className="absolute inset-x-16 sm:inset-x-24 bottom-0 h-px bg-gradient-to-r from-transparent via-black/10 dark:via-white/10 to-transparent pointer-events-none" />
 
             {/* Specular glass reflection */}
             <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-white/[0.08] to-transparent pointer-events-none" />
@@ -837,7 +841,7 @@ const App: React.FC = () => {
                           <span>დარჩენილია {Math.max(0, Math.round(100 - timerProgressPercent))}%</span>
                           <span className="flex items-center gap-1">
                             <Clock size={11} className="opacity-60" />
-                            {delayIn !== null ? 'დაყოვნება (+1:20)' : 'ზარამდე'}
+                            {delayIn !== null ? `დაყოვნება (+${Math.floor(BELL_DELAY_SECONDS / 60)}:${(BELL_DELAY_SECONDS % 60).toString().padStart(2, '0')})` : 'ზარამდე'}
                           </span>
                         </div>
                       </div>
@@ -963,37 +967,40 @@ const App: React.FC = () => {
         </div>
 
         {/* Right Column: Next Holiday Card & Full 11-1 Timetable */}
-        <div className="w-full xl:col-span-5 flex flex-col gap-6">
+        <div className="w-full xl:col-span-5 flex flex-col gap-5 sm:gap-6">
           
           {/* Next Holiday Card */}
           {nextHolidayInfo && (
-            <div className={`w-full p-5 sm:p-6 rounded-[2.2rem] border flex items-center justify-between transition-all duration-300 hover:-translate-y-0.5 ${theme.card}`}>
-              <div className="flex items-center gap-3.5">
-                <div className={`w-11 h-11 rounded-2xl flex items-center justify-center ${isDarkMode ? 'bg-amber-500/10 text-amber-300 border border-amber-500/20' : 'bg-amber-100 text-amber-700'}`}>
+            <div className={`w-full p-4 sm:p-5 md:p-6 rounded-2xl sm:rounded-3xl border flex items-center justify-between gap-3 transition-all duration-300 hover:-translate-y-0.5 shadow-sm ${theme.card}`}>
+              <div className="flex items-center gap-3 min-w-0">
+                <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl shrink-0 flex items-center justify-center ${isDarkMode ? 'bg-amber-500/10 text-amber-300 border border-amber-500/20' : 'bg-amber-100 text-amber-700'}`}>
                   <PartyPopper size={20} />
                 </div>
-                <div className="flex flex-col text-left">
-                  <span className={`text-sm sm:text-base font-black tracking-tight ${theme.head}`}>უახლოესი დასვენება</span>
-                  <span className={`text-xs font-bold leading-tight ${theme.sub}`}>
-                    {nextHolidayInfo.name}
+                <div className="flex flex-col text-left min-w-0">
+                  <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-amber-500 dark:text-amber-400 truncate">
+                    უახლოესი დასვენება
                   </span>
-                  <div className="flex items-center gap-1.5 mt-1 text-[11px] font-bold text-amber-500/90 dark:text-amber-300/90">
-                    <span>{nextHolidayInfo.dateLabel}</span>
+                  <h3 className={`text-sm sm:text-base font-black tracking-tight leading-snug truncate ${theme.head}`}>
+                    {nextHolidayInfo.name}
+                  </h3>
+                  <div className="flex flex-wrap items-center gap-1.5 mt-0.5 text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                    <span className="truncate">{nextHolidayInfo.dateLabel}</span>
                     <span className="opacity-40">•</span>
-                    <span className="px-2 py-0.5 rounded-md border text-[10px] font-black uppercase tracking-wide bg-amber-500/10 dark:bg-amber-400/10 border-amber-500/20">
+                    <span className="px-1.5 py-0.5 rounded-md border text-[9px] sm:text-[10px] font-black uppercase tracking-wide bg-amber-500/10 dark:bg-amber-400/10 border-amber-500/20 text-amber-600 dark:text-amber-300 shrink-0">
                       {nextHolidayInfo.weekdayName}
                     </span>
                   </div>
                 </div>
               </div>
-              <div className="flex flex-col items-end">
+
+              <div className="shrink-0 flex flex-col items-end text-right pl-1 sm:pl-2">
                 {nextHolidayInfo.isOngoing ? (
-                  <span className="px-3 py-1 bg-emerald-500/20 text-emerald-300 text-xs font-black rounded-xl border border-emerald-500/30 animate-pulse">
+                  <span className="px-2.5 sm:px-3 py-1 bg-emerald-500/20 text-emerald-300 text-[11px] sm:text-xs font-black rounded-xl border border-emerald-500/30 animate-pulse">
                     დღეს
                   </span>
                 ) : (
                   <>
-                    <span className={`text-2xl sm:text-3xl font-black ${isDarkMode ? 'text-amber-400' : 'text-amber-600'}`}>
+                    <span className={`text-2xl sm:text-3xl font-black tabular-nums ${isDarkMode ? 'text-amber-400' : 'text-amber-600'}`}>
                       {nextHolidayInfo.daysRemaining}
                     </span>
                     <span className={`text-[9px] uppercase font-black tracking-widest ${theme.sub}`}>დღეში</span>
@@ -1009,41 +1016,41 @@ const App: React.FC = () => {
               href="https://onlineschool.emis.ge/" 
               target="_blank" 
               rel="noopener noreferrer" 
-              className={`w-full p-5 rounded-[2rem] border flex items-center justify-between group transition-all duration-300 active:scale-98 ${theme.card}`}
+              className={`w-full p-4 sm:p-5 rounded-2xl sm:rounded-3xl border flex items-center justify-between group transition-all duration-300 active:scale-98 ${theme.card}`}
             >
-              <div className="flex items-center gap-3.5">
-                <div className={`w-11 h-11 rounded-2xl flex items-center justify-center ${isDarkMode ? 'bg-white/5 border border-white/10 text-white' : activeTheme.buttonActive}`}>
-                  <BookOpenCheck size={22} />
+              <div className="flex items-center gap-3 min-w-0">
+                <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl shrink-0 flex items-center justify-center transition-all duration-300 group-hover:scale-105 ${isDarkMode ? 'bg-white/5 border border-white/10 text-white' : activeTheme.buttonActive}`}>
+                  <BookOpenCheck size={20} />
                 </div>
-                <div className="flex flex-col text-left">
-                  <span className={`text-base font-black tracking-tight ${theme.head}`}>ნიშნების ნახვა</span>
-                  <span className={`text-[10px] uppercase font-bold ${activeTheme.text}`}>ონლაინ სკოლა</span>
+                <div className="flex flex-col text-left min-w-0">
+                  <span className={`text-sm sm:text-base font-black tracking-tight truncate ${theme.head}`}>ნიშნების ნახვა</span>
+                  <span className={`text-[10px] uppercase font-bold truncate ${activeTheme.text}`}>ონლაინ სკოლის პორტალი</span>
                 </div>
               </div>
-              <ExternalLink size={16} className="text-slate-400" />
+              <ExternalLink size={16} className="text-slate-400 shrink-0 ml-2" />
             </a>
           </div>
 
           {/* Full 11-1 Class Timetable Section */}
-          <section className={`w-full rounded-[2.5rem] p-6 sm:p-7 border flex flex-col ${theme.card}`}>
+          <section className={`w-full rounded-2xl sm:rounded-3xl lg:rounded-[2.5rem] p-4 sm:p-6 lg:p-7 border flex flex-col ${theme.card}`}>
             
-            <div className="flex items-center justify-between mb-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4 mb-4 sm:mb-5">
               <div>
-                <h2 className={`text-xl sm:text-2xl font-black tracking-tight ${theme.head}`}>
+                <h2 className={`text-lg sm:text-xl md:text-2xl font-black tracking-tight ${theme.head}`}>
                   გაკვეთილების ცხრილი
                 </h2>
-                <p className={`text-xs font-semibold ${theme.sub}`}>
+                <p className={`text-[11px] sm:text-xs font-semibold ${theme.sub}`}>
                   11-1 კლასი • {maxPeriod} გაკვეთილი ({lastLessonEndTime}-მდე)
                 </p>
               </div>
 
-              <div className={`px-3 py-1 rounded-xl text-[10px] font-bold border ${isDarkMode ? 'bg-white/5 border-white/10 text-slate-300' : 'bg-slate-100 border-slate-200 text-slate-600'}`}>
+              <div className={`self-start sm:self-center px-3 py-1 rounded-xl text-[10px] font-bold border ${isDarkMode ? 'bg-white/5 border-white/10 text-slate-300' : 'bg-slate-100 border-slate-200 text-slate-600'}`}>
                 {maxPeriod === 6 ? '08:30 – 13:05' : '08:30 – 12:20'}
               </div>
             </div>
             
             {/* Weekday Switcher Tabs */}
-            <div className="flex overflow-x-auto gap-2 mb-5 pb-1 -mx-2 px-2 snap-x" style={{ scrollbarWidth: 'none' }}>
+            <div className="flex overflow-x-auto gap-1.5 sm:gap-2 mb-4 sm:mb-5 pb-1 -mx-1 px-1 sm:mx-0 sm:px-0 snap-x scrollbar-none" style={{ scrollbarWidth: 'none' }}>
               {[1, 2, 3, 4, 5].map(d => {
                 const isToday = tbilisiTimeData.day === d;
                 const isSelected = selectedDay === d;
@@ -1053,7 +1060,7 @@ const App: React.FC = () => {
                   <button
                     key={d}
                     onClick={() => setSelectedDay(d)}
-                    className={`px-4 py-2.5 rounded-2xl font-black text-xs whitespace-nowrap transition-all snap-center shrink-0 relative border backdrop-blur-xl hover:scale-[1.02] active:scale-[0.98] ${
+                    className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl font-black text-xs whitespace-nowrap transition-all snap-center shrink-0 relative border backdrop-blur-xl hover:scale-[1.02] active:scale-[0.98] ${
                       isSelected
                         ? activeTheme.buttonActive
                         : isDarkMode 
@@ -1077,7 +1084,7 @@ const App: React.FC = () => {
             </div>
 
             {/* Daily Lessons List */}
-            <div className="flex flex-col gap-2.5">
+            <div className="flex flex-col gap-2 sm:gap-2.5">
               {selectedLessons.map((lesson, bi) => {
                 const bell = BELL_TIMES[bi];
                 const isHolidayToday = holidayStatusByDay[selectedDay];
@@ -1086,7 +1093,7 @@ const App: React.FC = () => {
                 return (
                   <div 
                     key={bi} 
-                    className={`flex items-center gap-3.5 p-3.5 sm:p-4 rounded-2xl border transition-all backdrop-blur-xl ${
+                    className={`flex items-center gap-2.5 sm:gap-3.5 p-3 sm:p-4 rounded-xl sm:rounded-2xl border transition-all backdrop-blur-xl ${
                       isCurrentLesson 
                         ? (isDarkMode 
                             ? 'bg-white/[0.08] border-white/[0.22] shadow-[0_8px_24px_rgba(0,0,0,0.3)] ring-1 ring-blue-500/40' 
@@ -1097,37 +1104,37 @@ const App: React.FC = () => {
                     } ${isHolidayToday ? 'opacity-50' : ''}`}
                   >
                     {/* Period Number Badge */}
-                    <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex flex-col items-center justify-center shrink-0 font-black transition-colors ${
+                    <div className={`w-9 h-9 sm:w-11 sm:h-11 rounded-xl flex flex-col items-center justify-center shrink-0 font-black transition-colors ${
                       isCurrentLesson
                         ? activeTheme.buttonActive
                         : (isDarkMode ? 'bg-white/[0.04] text-slate-300 border border-white/[0.06]' : 'bg-white/80 text-slate-600 border border-slate-200/60')
                     }`}>
-                      <span className="text-sm sm:text-base leading-none">{bell.period}</span>
+                      <span className="text-xs sm:text-base leading-none">{bell.period}</span>
                     </div>
                     
                     {/* Subject & Teacher Info */}
                     <div className="flex flex-col min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className={`font-black text-sm sm:text-base truncate ${isHolidayToday ? 'line-through' : ''} ${theme.head}`}>
+                      <div className="flex items-center gap-1.5 sm:gap-2">
+                        <span className={`font-black text-xs sm:text-sm md:text-base truncate ${isHolidayToday ? 'line-through' : ''} ${theme.head}`}>
                           {lesson.subject}
                         </span>
                         {isCurrentLesson && (
-                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shrink-0 ${activeTheme.badge}`}>
+                          <span className={`px-2 py-0.5 rounded-full text-[8px] sm:text-[9px] font-black uppercase tracking-wider shrink-0 ${activeTheme.badge}`}>
                             ახლა
                           </span>
                         )}
                       </div>
-                      <span className={`text-[11px] sm:text-xs font-semibold mt-0.5 truncate ${theme.sub}`}>
+                      <span className={`text-[10px] sm:text-xs font-semibold mt-0.5 truncate ${theme.sub}`}>
                         {lesson.teacher}
                       </span>
                     </div>
                     
                     {/* Period Bell Timing */}
-                    <div className="flex flex-col items-end shrink-0 text-right">
-                      <span className={`font-black text-xs sm:text-sm ${theme.head}`}>
+                    <div className="flex flex-col items-end shrink-0 text-right pl-1">
+                      <span className={`font-black text-xs sm:text-sm tabular-nums ${theme.head}`}>
                         {bell.start}
                       </span>
-                      <span className={`text-[10px] font-semibold opacity-60 ${theme.sub}`}>
+                      <span className={`text-[9px] sm:text-[10px] font-semibold opacity-60 tabular-nums ${theme.sub}`}>
                         {bell.end}
                       </span>
                     </div>
@@ -1139,30 +1146,30 @@ const App: React.FC = () => {
         </div>
 
         {/* Compact, Beautiful & Responsive 2026-2027 Official Holidays Section */}
-        <section className="w-full xl:col-span-12 mb-12 mt-4 max-w-7xl mx-auto">
-          <div className={`rounded-[2.5rem] p-6 sm:p-8 md:p-10 border transition-all ${theme.card}`}>
+        <section className="w-full xl:col-span-12 mb-8 sm:mb-12 mt-2 sm:mt-4 max-w-7xl mx-auto">
+          <div className={`rounded-2xl sm:rounded-3xl lg:rounded-[2.5rem] p-4 sm:p-7 md:p-9 border transition-all ${theme.card}`}>
             
             {/* Header with Title and Filter Switcher */}
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6 pb-6 border-b border-white/[0.08]">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 sm:gap-4 mb-5 pb-4 sm:pb-5 border-b border-white/[0.08]">
               <div>
-                <div className="flex items-center gap-2.5 mb-1.5">
-                  <div className={`p-2 rounded-xl ${isDarkMode ? 'bg-amber-500/10 text-amber-300 border border-amber-500/20' : 'bg-amber-100 text-amber-700'}`}>
-                    <PartyPopper size={20} />
+                <div className="flex items-center gap-2 sm:gap-2.5 mb-1">
+                  <div className={`p-1.5 sm:p-2 rounded-xl ${isDarkMode ? 'bg-amber-500/10 text-amber-300 border border-amber-500/20' : 'bg-amber-100 text-amber-700'}`}>
+                    <PartyPopper size={18} />
                   </div>
-                  <h2 className={`text-2xl sm:text-3xl font-black tracking-tight ${theme.head}`}>
+                  <h2 className={`text-xl sm:text-2xl md:text-3xl font-black tracking-tight ${theme.head}`}>
                     სასკოლო უქმე დღეები
                   </h2>
                 </div>
-                <p className={`text-xs sm:text-sm font-semibold ${theme.sub}`}>
+                <p className={`text-[11px] sm:text-xs md:text-sm font-semibold ${theme.sub}`}>
                   2026–2027 სასწავლო წლის ოფიციალური დასვენებები და არდადეგები
                 </p>
               </div>
 
               {/* Filter Tabs */}
-              <div className="flex items-center gap-1.5 p-1 rounded-2xl border backdrop-blur-xl shrink-0 self-stretch sm:self-auto overflow-x-auto">
+              <div className="flex items-center gap-1 p-1 rounded-xl sm:rounded-2xl border backdrop-blur-xl shrink-0 w-full sm:w-auto overflow-x-auto justify-between sm:justify-start">
                 <button
                   onClick={() => setHolidayFilter('all')}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all ${
+                  className={`flex-1 sm:flex-initial px-2.5 sm:px-3.5 py-1.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-black transition-all text-center ${
                     holidayFilter === 'all' 
                       ? activeTheme.buttonActive 
                       : (isDarkMode ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900')
@@ -1172,7 +1179,7 @@ const App: React.FC = () => {
                 </button>
                 <button
                   onClick={() => setHolidayFilter('break')}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all ${
+                  className={`flex-1 sm:flex-initial px-2.5 sm:px-3.5 py-1.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-black transition-all text-center ${
                     holidayFilter === 'break' 
                       ? activeTheme.buttonActive 
                       : (isDarkMode ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900')
@@ -1182,26 +1189,26 @@ const App: React.FC = () => {
                 </button>
                 <button
                   onClick={() => setHolidayFilter('holiday')}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all ${
+                  className={`flex-1 sm:flex-initial px-2.5 sm:px-3.5 py-1.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-black transition-all text-center ${
                     holidayFilter === 'holiday' 
                       ? activeTheme.buttonActive 
                       : (isDarkMode ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900')
                   }`}
                 >
-                  უქმე დღეები (9)
+                  უქმეები (9)
                 </button>
               </div>
             </div>
 
             {/* Responsive Grid of Compact Holiday Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5 sm:gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
               {filteredHolidays.map((h) => {
                 const isNearest = nextHolidayInfo?.id === h.id && !h.isOngoing && !h.isPast;
                 
                 return (
                   <div
                     key={h.id}
-                    className={`relative p-4 sm:p-5 rounded-2xl border transition-all duration-300 flex flex-col justify-between ${
+                    className={`relative p-3.5 sm:p-4 md:p-5 rounded-xl sm:rounded-2xl border transition-all duration-300 flex flex-col justify-between ${
                       h.isOngoing
                         ? (isDarkMode 
                             ? 'bg-emerald-500/15 border-emerald-400/40 shadow-[0_4px_20px_rgba(16,185,129,0.2)] ring-1 ring-emerald-500/40' 
@@ -1216,8 +1223,8 @@ const App: React.FC = () => {
                     }`}
                   >
                     {/* Top Row: Type Badge & Status Tag */}
-                    <div className="flex items-center justify-between gap-2 mb-3">
-                      <span className={`px-2.5 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider ${
+                    <div className="flex items-center justify-between gap-2 mb-2.5">
+                      <span className={`px-2 py-0.5 rounded-md text-[9px] sm:text-[10px] font-black uppercase tracking-wider ${
                         h.category === 'break' 
                           ? (isDarkMode ? 'bg-purple-500/20 text-purple-300 border border-purple-400/30' : 'bg-purple-100 text-purple-800 border border-purple-200')
                           : (isDarkMode ? 'bg-blue-500/20 text-blue-300 border border-blue-400/30' : 'bg-blue-100 text-blue-800 border border-blue-200')
@@ -1245,23 +1252,23 @@ const App: React.FC = () => {
                     </div>
 
                     {/* Middle: Title & Date Label */}
-                    <div className="mb-3">
-                      <h3 className={`font-black text-base sm:text-lg leading-snug tracking-tight mb-1 ${theme.head}`}>
+                    <div className="mb-2.5">
+                      <h3 className={`font-black text-sm sm:text-base leading-snug tracking-tight mb-1 ${theme.head}`}>
                         {h.name}
                       </h3>
                       
-                      <div className="flex items-center gap-1.5 text-xs font-bold text-amber-500/90 dark:text-amber-300/90">
-                        <Calendar size={13} className="shrink-0" />
+                      <div className="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold text-amber-500/90 dark:text-amber-300/90">
+                        <Calendar size={12} className="shrink-0" />
                         <span>{h.dateLabel}</span>
                       </div>
                     </div>
 
                     {/* Footer Row: Details & Weekday/Duration Tag */}
-                    <div className="pt-2.5 mt-auto border-t border-white/[0.06] flex items-center justify-between text-[11px]">
+                    <div className="pt-2 mt-auto border-t border-white/[0.06] flex items-center justify-between text-[10px] sm:text-[11px]">
                       <span className={`truncate font-medium pr-2 opacity-70 ${theme.sub}`}>
                         {h.details}
                       </span>
-                      <span className={`px-2 py-0.5 rounded-md shrink-0 font-black text-[10px] border ${
+                      <span className={`px-1.5 py-0.5 rounded-md shrink-0 font-black text-[9px] sm:text-[10px] border ${
                         isDarkMode ? 'bg-white/5 border-white/10 text-slate-300' : 'bg-slate-100 border-slate-200 text-slate-700'
                       }`}>
                         {h.weekdayName}
@@ -1275,9 +1282,9 @@ const App: React.FC = () => {
         </section>
 
         {/* Footer */}
-        <footer className="text-center py-10 border-t w-full xl:col-span-12 border-white/5 relative z-10">
-          <p className="text-[11px] font-black tracking-[0.5em] mb-1.5 opacity-40">DESIGNED BY SMILE B</p>
-          <p className="text-[10px] font-bold opacity-30 uppercase tracking-widest">© 2026–2027. 11-1 კლასის სასკოლო პორტალი</p>
+        <footer className="text-center py-8 sm:py-10 border-t w-full xl:col-span-12 border-white/5 relative z-10 flex flex-col items-center justify-center">
+          <p className="text-xs sm:text-[13px] font-black tracking-widest uppercase mb-1.5 opacity-60">MADE BY SMILE B.</p>
+          <p className="text-[10px] sm:text-[11px] font-semibold opacity-30 tracking-wider">© 2026–2027. 11-1 კლასის სასკოლო პორტალი</p>
         </footer>
       </div>
     </div>

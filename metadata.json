@@ -1,5 +1,6 @@
 {
   "name": "სასკოლო ზარი - 11-1 კლასი",
   "description": "სასკოლო ზარის ქაუნთდაუნი და გაკვეთილების ცხრილი 11-1 კლასისთვის",
-  "requestFramePermissions": []
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

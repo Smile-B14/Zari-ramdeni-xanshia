@@ -8,7 +8,7 @@
     <title>ზარი რამდენ ხანშია? - 11-1 კლასი</title>
     <meta name="title" content="ზარი რამდენ ხანშია? - 11-1 კლასი">
     <meta name="description" content="სასკოლო ზარის ქაუნთდაუნი და გაკვეთილების ცხრილი 11-1 კლასის მოსწავლეებისთვის.">
-    <meta name="author" content="Smile B">
+    <meta name="author" content="MADE BY SMILE B.">
     <meta name="theme-color" content="#09090b">
 
     <!-- PWA / Mobile Web App Tags -->
@@ -45,17 +45,27 @@
             padding: 0;
             overscroll-behavior-y: contain;
         }
-        /* Custom scrollbar */
+        /* Dynamic Custom scrollbar */
         ::-webkit-scrollbar {
-          width: 6px;
-          height: 6px;
+          width: 7px;
+          height: 7px;
         }
         ::-webkit-scrollbar-track {
           background: transparent;
         }
         ::-webkit-scrollbar-thumb {
-          background: #6366f1;
-          border-radius: 10px;
+          background: var(--scroll-thumb-color, #38bdf8);
+          border-radius: 9999px;
+          border: 1.5px solid transparent;
+          background-clip: padding-box;
+          transition: background-color 0.4s ease;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+          background: var(--scroll-thumb-hover, #0284c7);
+        }
+        * {
+          scrollbar-width: thin;
+          scrollbar-color: var(--scroll-thumb-color, #38bdf8) transparent;
         }
         .lesson-card {
             transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
