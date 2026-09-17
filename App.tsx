@@ -11,7 +11,7 @@ import {
 } from './constants';
 import { BellStatus } from './types';
 
-const BELL_DELAY_SECONDS = 180; // 3 min 00 sec (80s + 100s) 
+const BELL_DELAY_SECONDS = 80; // 1 min 20 sec (removed 1 min 40 sec)
 const MONTH_NAMES_GE = [
   "იანვარი", "თებერვალი", "მარტი", "აპრილი", "მაისი", "ივნისი",
   "ივლისი", "აგვისტო", "სექტემბერი", "ოქტომბერი", "ნოემბერი", "დეკემბერი"
@@ -24,7 +24,10 @@ const formatTimeRemaining = (seconds: number | null) => {
   const mins = Math.floor((s % 3600) / 60);
   const secs = s % 60;
   
-  return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  if (hrs > 0) {
+    return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  }
+  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 };
 
 const getColorConfig = (color: string, isDark: boolean) => {
@@ -672,7 +675,7 @@ const App: React.FC = () => {
         />
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-5 md:py-8 grid grid-cols-1 xl:grid-cols-12 gap-5 sm:gap-6 xl:gap-8 items-start">
+      <div className="relative z-10 max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3.5 sm:py-6 md:py-8 grid grid-cols-1 xl:grid-cols-12 gap-3.5 sm:gap-5 xl:gap-8 items-start">
         
         {/* Top Control Bar */}
         <div className="xl:col-span-12 flex items-center justify-between w-full">
@@ -741,13 +744,13 @@ const App: React.FC = () => {
         </div>
 
         {/* Centered Hero Section Header */}
-        <header className="xl:col-span-12 flex flex-col items-center justify-center text-center gap-2 sm:gap-2.5 mt-1 mx-auto w-full">
-          <h1 className={`text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tight text-center ${theme.head}`}>
+        <header className="xl:col-span-12 flex flex-col items-center justify-center text-center gap-1.5 sm:gap-2 mx-auto w-full">
+          <h1 className={`text-2xl xs:text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-center ${theme.head}`}>
             ზარი რამდენ ხანშია?
           </h1>
 
-          <div className={`px-4 sm:px-5 py-1.5 sm:py-2 rounded-full border backdrop-blur-xl flex items-center justify-center gap-2 shadow-sm ${isDarkMode ? 'bg-white/[0.04] border-white/[0.1]' : 'bg-white/70 border-white/60'}`}>
-            <Calendar size={14} className={`${activeTheme.text} shrink-0`} />
+          <div className={`px-3.5 sm:px-5 py-1 sm:py-1.5 rounded-full border backdrop-blur-xl flex items-center justify-center gap-2 shadow-sm ${isDarkMode ? 'bg-white/[0.04] border-white/[0.1]' : 'bg-white/70 border-white/60'}`}>
+            <Calendar size={13} className={`${activeTheme.text} shrink-0`} />
             <span className="text-[11px] sm:text-xs md:text-sm font-bold text-center">
               {tbilisiTimeData.d} {MONTH_NAMES_GE[tbilisiTimeData.m - 1]} • {WEEKDAYS_GE[tbilisiTimeData.day]}, {tbilisiTimeData.hour.toString().padStart(2, '0')}:{tbilisiTimeData.minute.toString().padStart(2, '0')}
             </span>
@@ -755,9 +758,9 @@ const App: React.FC = () => {
         </header>
 
         {/* Main Countdown Column (Left on desktop) */}
-        <div className="w-full xl:col-span-7 flex flex-col gap-6">
+        <div className="w-full xl:col-span-7 flex flex-col gap-4 sm:gap-5">
           
-          <main className={`w-full rounded-3xl sm:rounded-[2.5rem] lg:rounded-[3rem] p-5 sm:p-7 md:p-10 lg:p-12 text-center relative overflow-hidden transition-all duration-500 flex flex-col justify-between min-h-[440px] sm:min-h-[480px] ${theme.card}`}>
+          <main className={`w-full rounded-2xl sm:rounded-[2rem] lg:rounded-[2.5rem] p-4 sm:p-6 md:p-8 text-center relative overflow-hidden transition-all duration-500 flex flex-col items-center shadow-lg ${theme.card}`}>
             
             {/* Ambient background glow accent */}
             <div 
@@ -783,13 +786,13 @@ const App: React.FC = () => {
             <div className="absolute inset-x-16 sm:inset-x-24 bottom-0 h-px bg-gradient-to-r from-transparent via-black/10 dark:via-white/10 to-transparent pointer-events-none" />
 
             {/* Specular glass reflection */}
-            <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-white/[0.08] to-transparent pointer-events-none" />
+            <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-white/[0.08] to-transparent pointer-events-none" />
             
-            <div className="flex flex-col items-center justify-between w-full h-full relative z-10 my-auto">
+            <div className="flex flex-col items-center w-full relative z-10">
               
-              {/* Top Header Row within Card: Status Pill & Time Range */}
-              <div className="w-full flex items-center justify-between gap-2 mb-4 sm:mb-6">
-                <div className={`px-3.5 sm:px-4 py-1.5 rounded-full text-[10px] sm:text-xs font-black flex items-center gap-2 uppercase tracking-[0.14em] transition-all shadow-sm ${activeTheme.badge}`}>
+              {/* Top Row within Card: Centered Status Pill & Time Range */}
+              <div className="w-full flex flex-wrap items-center justify-center gap-2 mb-2 sm:mb-3">
+                <div className={`px-3 sm:px-4 py-1.5 rounded-full text-[11px] sm:text-xs font-black flex items-center gap-2 uppercase tracking-wider shadow-sm ${activeTheme.badge}`}>
                   <span className={`w-2 h-2 rounded-full ${activeTheme.bg} animate-pulse`} />
                   {status === BellStatus.LESSON ? (
                     <GraduationCap size={14} className="shrink-0" />
@@ -802,32 +805,24 @@ const App: React.FC = () => {
                 </div>
 
                 {activeLessonTimeInfo && (
-                  <div className={`hidden sm:inline-flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-full text-xs font-bold border backdrop-blur-md transition-all shadow-sm ${isDarkMode ? 'bg-white/[0.04] border-white/[0.08] text-slate-300' : 'bg-white/80 border-slate-200/80 text-slate-700'}`}>
-                    <Clock size={13} className={activeTheme.text} />
+                  <div className={`inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-full text-[11px] sm:text-xs font-bold border backdrop-blur-md shadow-sm ${isDarkMode ? 'bg-white/[0.04] border-white/[0.08] text-slate-300' : 'bg-white/80 border-slate-200/80 text-slate-700'}`}>
+                    <Clock size={12} className={activeTheme.text} />
                     <span>{activeLessonTimeInfo.range}</span>
                   </div>
                 )}
               </div>
             
               {/* Central Hero Countdown */}
-              <div className="w-full flex flex-col items-center justify-center my-3 sm:my-6">
+              <div className="w-full flex flex-col items-center justify-center my-1 sm:my-2">
                 {showTimer ? (
                   <>
-                    <div className={`text-[3.25rem] xs:text-[4.2rem] sm:text-6xl md:text-7xl lg:text-[7.5rem] xl:text-[8.25rem] font-black tabular-nums tracking-tighter leading-none select-none drop-shadow-sm ${theme.head}`}>
+                    <div className={`text-[3.5rem] xs:text-[4.5rem] sm:text-6xl md:text-7xl lg:text-[7.5rem] font-black tabular-nums tracking-tight leading-none select-none drop-shadow-sm my-1 sm:my-2 ${theme.head}`}>
                       {delayIn !== null ? formatTimeRemaining(delayIn) : formatTimeRemaining(nextBellIn)}
                     </div>
-                    
-                    {/* Time indicator pill visible on smaller screens */}
-                    {activeLessonTimeInfo && (
-                      <div className={`sm:hidden mt-3 inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold border backdrop-blur-md transition-all shadow-sm ${isDarkMode ? 'bg-white/[0.04] border-white/[0.08] text-slate-300' : 'bg-white/80 border-slate-200/80 text-slate-700'}`}>
-                        <Clock size={12} className={activeTheme.text} />
-                        <span>{activeLessonTimeInfo.range}</span>
-                      </div>
-                    )}
 
                     {/* Modern sleek progress bar */}
                     {totalDuration && (
-                      <div className="w-full max-w-sm sm:max-w-md mt-5 sm:mt-7 flex flex-col gap-2">
+                      <div className="w-full max-w-xs sm:max-w-md mx-auto mt-2 sm:mt-3 flex flex-col gap-1.5">
                         <div className="h-2 sm:h-2.5 w-full bg-slate-200/60 dark:bg-white/[0.06] rounded-full overflow-hidden p-0.5 backdrop-blur-sm border border-black/5 dark:border-white/5">
                           <div 
                             className={`h-full rounded-full transition-all duration-1000 ease-out ${activeTheme.bg}`}
@@ -848,19 +843,19 @@ const App: React.FC = () => {
                     )}
                   </>
                 ) : status === BellStatus.WEEKEND ? (
-                  <div className="flex flex-col items-center justify-center py-4 md:py-8">
-                    <div className={`text-3xl sm:text-4xl md:text-6xl font-black mb-3 tracking-tight ${theme.head}`}>
+                  <div className="flex flex-col items-center justify-center py-3 sm:py-5">
+                    <div className={`text-2xl sm:text-4xl md:text-5xl font-black mb-2 tracking-tight ${theme.head}`}>
                       დღეს დასვენებაა!
                     </div>
                     {holidayNameToday && (
-                      <div className={`px-5 py-2.5 rounded-2xl text-xs md:text-sm font-bold flex items-center justify-center gap-2 max-w-[85%] mx-auto text-center ${isDarkMode ? 'bg-amber-500/10 text-amber-300 border border-amber-500/25 shadow-inner' : 'bg-amber-100 text-amber-900 border border-amber-200 shadow-sm'}`}>
+                      <div className={`px-4 py-2 rounded-2xl text-xs md:text-sm font-bold flex items-center justify-center gap-2 max-w-[90%] mx-auto text-center ${isDarkMode ? 'bg-amber-500/10 text-amber-300 border border-amber-500/25 shadow-inner' : 'bg-amber-100 text-amber-900 border border-amber-200 shadow-sm'}`}>
                         <PartyPopper size={16} className="shrink-0 text-amber-400" /> 
                         <span>{holidayNameToday}</span>
                       </div>
                     )}
                   </div>
                 ) : (
-                  <div className={`text-3xl sm:text-4xl md:text-5xl font-black py-4 md:py-8 opacity-40 ${theme.head}`}>
+                  <div className={`text-2xl sm:text-3xl md:text-4xl font-black py-3 sm:py-5 opacity-40 ${theme.head}`}>
                     სკოლა დასრულდა
                   </div>
                 )}
@@ -868,22 +863,22 @@ const App: React.FC = () => {
             
               {/* Lesson Context: Flat, sleek & modern glass styling */}
               {lessonData && (
-                <div className="w-full max-w-xl mx-auto mt-4 sm:mt-6 flex flex-col gap-3">
+                <div className="w-full max-w-xl mx-auto mt-3 sm:mt-4 flex flex-col gap-2.5">
                   
                   {/* If Tomorrow is Holiday / Off */}
                   {lessonData.isTomorrowOff ? (
-                    <div className={`w-full rounded-2xl sm:rounded-3xl p-5 sm:p-6 flex flex-col items-center border relative overflow-hidden transition-all ${isDarkMode ? 'bg-amber-500/10 border-amber-500/20 text-amber-200' : 'bg-amber-50/80 border-amber-200 text-amber-900'}`}>
-                      <div className="flex items-center gap-2 mb-2">
-                        <PartyPopper size={18} className="text-amber-400 shrink-0" />
-                        <span className="text-xs uppercase font-black tracking-widest text-amber-400">
+                    <div className={`w-full rounded-2xl sm:rounded-3xl p-4 sm:p-5 flex flex-col items-center border relative overflow-hidden transition-all ${isDarkMode ? 'bg-amber-500/10 border-amber-500/20 text-amber-200' : 'bg-amber-50/80 border-amber-200 text-amber-900'}`}>
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <PartyPopper size={16} className="text-amber-400 shrink-0" />
+                        <span className="text-[11px] uppercase font-black tracking-widest text-amber-400">
                           ხვალ დასვენებაა!
                         </span>
                       </div>
                       
-                      <h3 className="text-xl sm:text-2xl font-black">{lessonData.tomorrowHolidayName}</h3>
+                      <h3 className="text-lg sm:text-xl font-black">{lessonData.tomorrowHolidayName}</h3>
                       
                       {lessonData.firstLesson && (
-                        <div className={`mt-3 px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 border ${isDarkMode ? 'bg-black/25 border-white/5 text-slate-300' : 'bg-white/80 border-amber-200/50 text-slate-600'}`}>
+                        <div className={`mt-2.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-2 border ${isDarkMode ? 'bg-black/25 border-white/5 text-slate-300' : 'bg-white/80 border-amber-200/50 text-slate-600'}`}>
                           <span>სკოლა განახლდება {lessonData.nextSchoolLabel}:</span>
                           <span className="font-bold text-white">{lessonData.firstLesson.subject}</span>
                         </div>
@@ -891,32 +886,32 @@ const App: React.FC = () => {
                     </div>
                   ) : lessonData.current ? (
                     /* Regular Active or Upcoming Lesson */
-                    <div className={`w-full rounded-2xl sm:rounded-3xl p-4 sm:p-5 border transition-all text-left backdrop-blur-md ${isDarkMode ? 'bg-white/[0.025] border-white/[0.08]' : 'bg-white/70 border-white/80 shadow-sm'}`}>
+                    <div className={`w-full rounded-2xl sm:rounded-3xl p-3.5 sm:p-4 border transition-all text-left backdrop-blur-md ${isDarkMode ? 'bg-white/[0.03] border-white/[0.08]' : 'bg-white/80 border-white shadow-sm'}`}>
                       
-                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                        <div className="flex items-center gap-3 min-w-0">
-                          <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-2xl flex items-center justify-center text-sm font-black shrink-0 ${isDarkMode ? `${activeTheme.bgSubtle} ${activeTheme.text} border ${activeTheme.border}` : activeTheme.buttonActive}`}>
+                      <div className="flex items-center justify-between gap-2.5 sm:gap-3">
+                        <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                          <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl flex items-center justify-center text-xs sm:text-sm font-black shrink-0 ${isDarkMode ? `${activeTheme.bgSubtle} ${activeTheme.text} border ${activeTheme.border}` : activeTheme.buttonActive}`}>
                             {lessonData.current.num}
                           </div>
-                          <div className="flex flex-col min-w-0">
-                            <div className="flex items-center gap-2">
-                              <span className={`text-[10px] sm:text-[11px] uppercase font-black tracking-widest truncate ${status === BellStatus.BREAK || !showTimer ? activeTheme.text : 'text-slate-400'}`}>
+                          <div className="flex flex-col text-left min-w-0">
+                            <div className="flex items-center gap-1.5">
+                              <span className={`text-[10px] sm:text-[11px] uppercase font-black tracking-wider truncate ${status === BellStatus.BREAK || !showTimer ? activeTheme.text : 'text-slate-400'}`}>
                                 {lessonData.current.label}
                               </span>
                               {lessonData.current.isLast && !isLongCountdown && (
-                                <span className="px-2 py-0.5 bg-amber-500/15 text-amber-500 dark:text-amber-300 border border-amber-500/25 text-[9px] font-black rounded-full uppercase tracking-wider shrink-0">
+                                <span className="px-1.5 py-0.5 bg-amber-500/15 text-amber-500 dark:text-amber-300 border border-amber-500/25 text-[8px] font-black rounded-full uppercase tracking-wider shrink-0">
                                   ბოლო 🏁
                                 </span>
                               )}
                             </div>
-                            <h3 className={`text-lg sm:text-xl md:text-2xl font-black tracking-tight truncate ${theme.head}`}>
+                            <h3 className={`text-base sm:text-lg md:text-xl font-black tracking-tight truncate ${theme.head}`}>
                               {lessonData.current.lesson.subject}
                             </h3>
                           </div>
                         </div>
 
                         {lessonData.current.lesson.teacher && (
-                          <div className={`px-3 py-1.5 rounded-xl border text-xs font-bold shrink-0 self-start sm:self-center ${isDarkMode ? 'bg-white/[0.03] border-white/[0.06] text-slate-300' : 'bg-white border-slate-200/60 text-slate-700 shadow-sm'}`}>
+                          <div className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl border text-[11px] sm:text-xs font-bold shrink-0 text-right ${isDarkMode ? 'bg-white/[0.04] border-white/[0.08] text-slate-300' : 'bg-white border-slate-200/60 text-slate-700 shadow-sm'}`}>
                             {lessonData.current.lesson.teacher}
                           </div>
                         )}
@@ -924,17 +919,19 @@ const App: React.FC = () => {
 
                       {/* Next Lesson Preview Sub-Row */}
                       {!lessonData.isTomorrowOff && lessonData.next && (
-                        <div className="mt-3 pt-3 border-t border-black/5 dark:border-white/5 flex items-center justify-between gap-2 text-xs">
-                          <div className="flex items-center gap-2 min-w-0 text-slate-400">
-                            <span className={`text-[10px] font-black uppercase tracking-wider ${activeTheme.text}`}>შემდეგი:</span>
+                        <div className="mt-2.5 pt-2.5 border-t border-black/5 dark:border-white/[0.06] flex items-center justify-between gap-2 text-[11px] sm:text-xs">
+                          <div className="flex items-center gap-1.5 min-w-0 text-slate-400">
+                            <span className={`text-[10px] font-black uppercase tracking-wider shrink-0 ${activeTheme.text}`}>შემდეგი:</span>
                             <span className={`font-black truncate ${theme.head}`}>
                               {lessonData.next.subject}
                             </span>
                             {lessonData.next.isNextLast && <span className="text-amber-400 text-xs shrink-0">🏁</span>}
                           </div>
-                          <span className="font-semibold text-slate-400 text-[11px] shrink-0 truncate max-w-[140px] sm:max-w-none">
-                            {lessonData.next.teacher}
-                          </span>
+                          {lessonData.next.teacher && (
+                            <span className="font-semibold text-slate-400 text-[10px] sm:text-[11px] shrink-0 truncate max-w-[130px] sm:max-w-none">
+                              {lessonData.next.teacher}
+                            </span>
+                          )}
                         </div>
                       )}
                     </div>
