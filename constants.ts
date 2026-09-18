@@ -20,7 +20,7 @@ export const LESSON_SCHEDULE: DailySchedule = {
     { subject: 'სპორტი', teacher: 'ალანია' },
   ],
   2: [ // სამშაბათი (6 გაკვეთილი)
-    { subject: 'ინგლისური', teacher: 'ბექანიშვილი' },
+    { subject: 'ინგლისური', teacher: 'ბეჟანიშვილი' },
     { subject: 'ქართული ლიტერატურა', teacher: 'ეკატერინე მდივანი' },
     { subject: 'მათემატიკა', teacher: 'მარინა ხუციშვილი' },
     { subject: 'ფიზიკა', teacher: 'მანანა დვალი' },
@@ -40,7 +40,7 @@ export const LESSON_SCHEDULE: DailySchedule = {
     { subject: 'პროექტი მუსიკა', teacher: 'მაია ჯაში' },
     { subject: 'ქართული ლიტერატურა', teacher: 'ეკატერინე მდივანი' },
     { subject: 'პროექტი - გეოგრაფია', teacher: 'სოფიკო ნიკურაძე' },
-    { subject: 'ინგლისური', teacher: 'ბექანიშვილი' },
+    { subject: 'ინგლისური', teacher: 'ბეჟანიშვილი' },
   ],
   5: [ // პარასკევი (5 გაკვეთილი)
     { subject: 'ისტორია', teacher: 'დიმიტრი ღონღაძე' },
